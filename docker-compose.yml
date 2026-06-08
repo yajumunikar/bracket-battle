@@ -1,0 +1,23 @@
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: bracketbattle-db
+    environment:
+      POSTGRES_DB: bracketbattle
+      POSTGRES_USER: bracketbattle
+      POSTGRES_PASSWORD: bracketbattle123
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./docker/pg_hba.conf:/etc/postgresql/pg_hba.conf
+    command: postgres -c hba_file=/etc/postgresql/pg_hba.conf
+
+  redis:
+    image: redis:7-alpine
+    container_name: bracketbattle-redis
+    ports:
+      - "6379:6379"
+
+volumes:
+  postgres_data:
