@@ -135,7 +135,10 @@ export default function LandingPage() {
               >
                 Browse Tournaments
               </Button>
-              <Button sx={{ color: "#8888a8", fontSize: 14 }}>
+              <Button
+                onClick={() => navigate("/tournaments/create")}
+                sx={{ color: "#8888a8", fontSize: 14 }}
+              >
                 Host a Tournament →
               </Button>
             </Box>

@@ -59,6 +59,7 @@ public class TournamentService {
                 .rules(request.getRules())
                 .entryFee(request.getEntryFee() != null ?
                     request.getEntryFee() : java.math.BigDecimal.ZERO)
+                .prizePool(request.getPrizePool())
                 .registrationClosesAt(request.getRegistrationClosesAt())
                 .startsAt(request.getStartsAt())
                 .status(Tournament.Status.DRAFT)

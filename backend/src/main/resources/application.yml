@@ -32,7 +32,7 @@ server:
 
 jwt:
   secret: 3cfa76ef14937c1c0ea519f8fc057a80fcd04a7420f8e8bcd0a7567c272e007b
-  access-token-expiry-ms: 900000
+  access-token-expiry-ms: 86400000
   refresh-token-expiry-ms: 604800000
 
 sendgrid:

@@ -14,14 +14,14 @@ import { getTournaments } from "../api/tournaments";
 import type { Tournament } from "../api/tournaments";
 
 const STATUS_COLOR: Record<string, string> = {
-  PUBLISHED: "#00ffe0",
+  OPEN: "#00ffe0",
   LOCKED: "#7b5ef8",
   COMPLETED: "#555570",
   DRAFT: "#ff6b35",
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  PUBLISHED: "Open",
+  OPEN: "Open",
   LOCKED: "● Live",
   COMPLETED: "Completed",
   DRAFT: "Draft",

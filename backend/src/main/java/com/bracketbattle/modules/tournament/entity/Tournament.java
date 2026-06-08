@@ -68,6 +68,9 @@ public class Tournament {
     @Builder.Default
     private BigDecimal entryFee = BigDecimal.ZERO;
 
+    @Column(name = "prize_pool", precision = 10, scale = 2)
+    private BigDecimal prizePool;
+
     @Column(name = "prize_description", columnDefinition = "TEXT")
     private String prizeDescription;
 

@@ -21,6 +21,7 @@ public class TournamentDto {
     private Integer maxParticipants;
     private Integer currentParticipants;
     private BigDecimal entryFee;
+    private BigDecimal prizePool;
     private String prizeDescription;
     private String bannerUrl;
     private String rules;
@@ -51,6 +52,7 @@ public class TournamentDto {
                 .maxParticipants(t.getMaxParticipants())
                 .currentParticipants(t.getCurrentParticipants())
                 .entryFee(t.getEntryFee())
+                .prizePool(t.getPrizePool())
                 .prizeDescription(t.getPrizeDescription())
                 .bannerUrl(t.getBannerUrl())
                 .rules(t.getRules())

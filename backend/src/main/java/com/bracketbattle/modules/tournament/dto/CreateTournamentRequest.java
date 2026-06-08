@@ -28,6 +28,7 @@ public class CreateTournamentRequest {
     private String prizeDescription;
     private String rules;
     private BigDecimal entryFee;
+    private BigDecimal prizePool;
     private Instant registrationClosesAt;
     private Instant startsAt;
 }
