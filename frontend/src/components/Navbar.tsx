@@ -36,6 +36,12 @@ export default function Navbar() {
           <Button sx={{ color: "#8888a8", fontSize: 13 }}>Games</Button>
           {user ? (
             <>
+              <Button
+                onClick={() => navigate("/my-tournaments")}
+                sx={{ color: "#8888a8", fontSize: 13 }}
+              >
+                My Tournaments
+              </Button>
               <Typography sx={{ fontSize: 13, color: "#00ffe0" }}>
                 {user.username}
               </Typography>

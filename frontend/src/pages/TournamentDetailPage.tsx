@@ -68,6 +68,9 @@ export default function TournamentDetailPage() {
     checkRegistration(Number(id))
       .then((res) => setIsRegistered(res.data.data))
       .catch(() => {});
+    getTournament(Number(id))
+      .then((res) => setTournament(res.data.data))
+      .catch(() => {});
   }, [user, id]);
 
   const handleRegister = async () => {
@@ -323,6 +326,18 @@ export default function TournamentDetailPage() {
                   </Box>
                 </Box>
 
+                {isRegistered && !regMessage && (
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      mb: 1.5,
+                      textAlign: "center",
+                      color: "#00ffe0",
+                    }}
+                  >
+                    You are registered!
+                  </Typography>
+                )}
                 {regMessage && (
                   <Typography
                     sx={{
