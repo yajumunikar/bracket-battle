@@ -4,94 +4,109 @@ import { useNavigate } from "react-router-dom";
 
 const GAMES = [
   {
+    title: "EA FC 26",
+    short: "FC26",
+    description:
+      "The beautiful game goes competitive. Build your squad and dominate the pitch in ranked brackets.",
+    tournaments: 19,
+    prizePool: "$12,000",
+    accent: "#00ffe0",
+    live: true,
+    img: "https://cdn1.epicgames.com/offer/1d4d85b1051e41ee8f1a099e99d59f3f/EGS_EASPORTSFC26StandardEdition_EACANADA_S1_2560x1440-efabe29766334696db018632ea5ba492",
+    art: "https://cdn1.epicgames.com/offer/1d4d85b1051e41ee8f1a099e99d59f3f/EGS_EASPORTSFC26StandardEdition_EACANADA_S1_2560x1440-efabe29766334696db018632ea5ba492",
+    fallbackBg:
+      "linear-gradient(135deg, #001a12 0%, #003d2a 50%, #001a12 100%)",
+  },
+  {
     title: "Call of Duty",
+    short: "COD",
     description:
       "Drop in, gear up, and outlast the competition in high-stakes gunfight brackets.",
     tournaments: 12,
     prizePool: "$8,500",
-    color: "#ff6b35",
-    bg: "linear-gradient(135deg, #1a0a00 0%, #3d1a00 40%, #1a0a00 100%)",
     accent: "#ff6b35",
-    icon: "🎯",
+    live: true,
+    img: "https://www.dexerto.com/cdn-image/wp-content/uploads/2022/02/25/cod-2023-cancel-opinion.jpg?width=1200&quality=60&format=auto",
+    art: "https://www.dexerto.com/cdn-image/wp-content/uploads/2022/02/25/cod-2023-cancel-opinion.jpg?width=1200&quality=60&format=auto",
+    fallbackBg:
+      "linear-gradient(135deg, #1a0800 0%, #3d1500 50%, #1a0800 100%)",
   },
   {
     title: "Valorant",
+    short: "VAL",
     description:
-      "Tactical precision meets explosive gunplay. Climb through the brackets agent.",
+      "Tactical precision meets explosive gunplay. Climb through the brackets, agent.",
     tournaments: 24,
     prizePool: "$15,200",
-    color: "#ff4655",
-    bg: "linear-gradient(135deg, #1a0005 0%, #3d000f 40%, #1a0005 100%)",
     accent: "#ff4655",
-    icon: "⚡",
+    live: true,
+    img: "https://japannext.fr/cdn/shop/articles/Valorant-Wallpaper-Boys-Rainbow-Display_a94881d6-c6a5-4245-9da6-8f07c55a48d1.jpg?v=1760444880",
+    art: "https://japannext.fr/cdn/shop/articles/Valorant-Wallpaper-Boys-Rainbow-Display_a94881d6-c6a5-4245-9da6-8f07c55a48d1.jpg?v=1760444880",
+    fallbackBg:
+      "linear-gradient(135deg, #1a0003 0%, #3d000c 50%, #1a0003 100%)",
   },
   {
     title: "Counter-Strike 2",
+    short: "CS2",
     description:
-      "The world's most iconic FPS. Prove your aim on the global stage.",
+      "The world's most iconic FPS. Prove your aim on the global competitive stage.",
     tournaments: 18,
     prizePool: "$22,000",
-    color: "#f0a500",
-    bg: "linear-gradient(135deg, #0d0a00 0%, #2d2000 40%, #0d0a00 100%)",
     accent: "#f0a500",
-    icon: "💣",
-  },
-  {
-    title: "Fortnite",
-    description:
-      "Build fast, shoot faster. Solo and squad tournaments running every weekend.",
-    tournaments: 31,
-    prizePool: "$11,750",
-    color: "#7b5ef8",
-    bg: "linear-gradient(135deg, #05001a 0%, #15003d 40%, #05001a 100%)",
-    accent: "#7b5ef8",
-    icon: "🏗️",
+    live: false,
+    img: "https://www.nme.com/wp-content/uploads/2023/03/Counter-Strike-2-Dust-2.jpg",
+    art: "https://www.nme.com/wp-content/uploads/2023/03/Counter-Strike-2-Dust-2.jpg",
+    fallbackBg:
+      "linear-gradient(135deg, #0d0900 0%, #2a1f00 50%, #0d0900 100%)",
   },
   {
     title: "Apex Legends",
+    short: "APX",
     description:
       "The arena is hot. Squad up and fight for glory in battle royale brackets.",
     tournaments: 9,
     prizePool: "$6,300",
-    color: "#00ffe0",
-    bg: "linear-gradient(135deg, #001a18 0%, #003d38 40%, #001a18 100%)",
-    accent: "#00ffe0",
-    icon: "🔥",
+    accent: "#c8102e",
+    live: false,
+    img: "https://assets.nintendo.com/image/upload/q_auto:best/f_auto/dpr_2.0/ncom/en_US/articles/2025/check-out-whats-new-this-season-with-apex-legends-tm-showdown/Apex_S26_PrimaryArt",
+    art: "https://assets.nintendo.com/image/upload/q_auto:best/f_auto/dpr_2.0/ncom/en_US/articles/2025/check-out-whats-new-this-season-with-apex-legends-tm-showdown/Apex_S26_PrimaryArt",
+    fallbackBg:
+      "linear-gradient(135deg, #1a0003 0%, #3d0008 50%, #1a0003 100%)",
   },
 ];
 
-const INTERVAL = 4000;
+const INTERVAL = 5000;
 
 export default function GameCarousel() {
   const navigate = useNavigate();
   const [current, setCurrent] = useState(0);
-  const [prev, setPrev] = useState<number | null>(null);
-  const [fading, setFading] = useState(false);
+  const [transitioning, setTransitioning] = useState(false);
   const [paused, setPaused] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [imgErrors, setImgErrors] = useState<Record<number, boolean>>({});
   const intervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const progressRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const startTime = useRef(Date.now());
 
   const goTo = useCallback(
     (idx: number) => {
-      if (idx === current || fading) return;
-      setFading(true);
-      setPrev(current);
+      if (idx === current || transitioning) return;
+      setTransitioning(true);
+      setProgress(0);
+      startTime.current = Date.now();
       setTimeout(() => {
         setCurrent(idx);
-        setFading(false);
-        setPrev(null);
-        setProgress(0);
-      }, 350);
+        setTransitioning(false);
+      }, 400);
     },
-    [current, fading]
+    [current, transitioning]
   );
 
   const next = useCallback(
     () => goTo((current + 1) % GAMES.length),
     [current, goTo]
   );
-  const prev_ = useCallback(
+  const prev = useCallback(
     () => goTo((current - 1 + GAMES.length) % GAMES.length),
     [current, goTo]
   );
@@ -103,9 +118,11 @@ export default function GameCarousel() {
       return;
     }
     setProgress(0);
+    startTime.current = Date.now();
     progressRef.current = setInterval(() => {
-      setProgress((p) => Math.min(p + 100 / (INTERVAL / 50), 100));
-    }, 50);
+      const elapsed = Date.now() - startTime.current;
+      setProgress(Math.min((elapsed / INTERVAL) * 100, 100));
+    }, 30);
     intervalRef.current = setInterval(next, INTERVAL);
     return () => {
       if (intervalRef.current) clearInterval(intervalRef.current);
@@ -122,110 +139,256 @@ export default function GameCarousel() {
       sx={{
         position: "relative",
         width: "100%",
-        height: { xs: 320, md: 420 },
-        borderRadius: 3,
+        height: { xs: 340, md: 460 },
+        borderRadius: "16px",
         overflow: "hidden",
-        border: `1px solid ${game.accent}30`,
-        boxShadow: `0 0 40px ${game.accent}20, 0 0 80px ${game.accent}10`,
-        transition: "box-shadow 0.6s ease, border-color 0.6s ease",
-        cursor: "default",
+        border: `1px solid ${game.accent}40`,
+        boxShadow: `0 0 0 1px ${game.accent}15, 0 0 60px ${game.accent}25, 0 20px 60px rgba(0,0,0,0.6)`,
+        transition: "box-shadow 0.8s ease, border-color 0.8s ease",
       }}
     >
-      {/* Background */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background: game.bg,
-          transition: "background 0.6s ease",
-          animation: "zoomIn 8s ease-in-out infinite alternate",
-          "@keyframes zoomIn": {
-            from: { transform: "scale(1)" },
-            to: { transform: "scale(1.05)" },
-          },
-        }}
-      />
+      {/* === ARTWORK BACKGROUND === */}
+      {GAMES.map((g, i) => (
+        <Box
+          key={i}
+          sx={{
+            position: "absolute",
+            inset: 0,
+            opacity: i === current ? (transitioning ? 0 : 1) : 0,
+            transition: "opacity 0.4s ease",
+            zIndex: 0,
+          }}
+        >
+          {!imgErrors[i] ? (
+            <Box
+              component="img"
+              src={g.art}
+              onError={() => setImgErrors((prev) => ({ ...prev, [i]: true }))}
+              sx={{
+                width: "100%",
+                height: "100%",
+                objectFit: "cover",
+                objectPosition: "center top",
+                display: "block",
+                animation:
+                  i === current
+                    ? "slowZoom 12s ease-in-out infinite alternate"
+                    : "none",
+                "@keyframes slowZoom": {
+                  from: { transform: "scale(1)" },
+                  to: { transform: "scale(1.08)" },
+                },
+              }}
+            />
+          ) : (
+            <Box
+              sx={{ width: "100%", height: "100%", background: g.fallbackBg }}
+            />
+          )}
+        </Box>
+      ))}
 
-      {/* Grid pattern overlay */}
+      {/* === GRADIENT OVERLAYS === */}
       <Box
         sx={{
           position: "absolute",
           inset: 0,
-          backgroundImage: `linear-gradient(${game.accent}08 1px, transparent 1px), linear-gradient(90deg, ${game.accent}08 1px, transparent 1px)`,
-          backgroundSize: "40px 40px",
-          transition: "background 0.6s ease",
-        }}
-      />
-
-      {/* Gradient overlay */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
+          zIndex: 1,
           background:
-            "linear-gradient(to right, rgba(13,13,16,0.95) 0%, rgba(13,13,16,0.4) 60%, transparent 100%)",
+            "linear-gradient(to right, rgba(8,8,12,0.97) 0%, rgba(8,8,12,0.75) 45%, rgba(8,8,12,0.15) 100%)",
         }}
       />
       <Box
         sx={{
           position: "absolute",
           inset: 0,
+          zIndex: 1,
           background:
-            "linear-gradient(to top, rgba(13,13,16,0.9) 0%, transparent 50%)",
+            "linear-gradient(to top, rgba(8,8,12,1) 0%, rgba(8,8,12,0.5) 35%, transparent 65%)",
         }}
       />
-
-      {/* Glow orb */}
-      <Box
-        sx={{
-          position: "absolute",
-          right: "15%",
-          top: "20%",
-          width: 200,
-          height: 200,
-          borderRadius: "50%",
-          background: `radial-gradient(circle, ${game.accent}25 0%, transparent 70%)`,
-          transition: "background 0.6s ease",
-          filter: "blur(20px)",
-        }}
-      />
-
-      {/* Fade overlay for transition */}
       <Box
         sx={{
           position: "absolute",
           inset: 0,
-          background: "#0d0d10",
-          opacity: fading ? 1 : 0,
-          transition: "opacity 0.35s ease",
-          pointerEvents: "none",
-          zIndex: 5,
+          zIndex: 1,
+          background: `radial-gradient(ellipse at 20% 50%, ${game.accent}12 0%, transparent 60%)`,
+          transition: "background 0.8s ease",
         }}
       />
 
-      {/* Content */}
+      {/* === SCANLINE TEXTURE === */}
       <Box
         sx={{
-          position: "relative",
+          position: "absolute",
+          inset: 0,
           zIndex: 2,
-          height: "100%",
+          backgroundImage:
+            "repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px)",
+          pointerEvents: "none",
+        }}
+      />
+
+      {/* === LIVE BADGE === */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 16,
+          left: 16,
+          zIndex: 10,
+          display: "flex",
+          alignItems: "center",
+          gap: 1,
+        }}
+      >
+        {game.live ? (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.75,
+              background: "rgba(255, 40, 40, 0.15)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,60,60,0.4)",
+              borderRadius: "6px",
+              px: 1.25,
+              py: 0.5,
+            }}
+          >
+            <Box
+              sx={{
+                width: 6,
+                height: 6,
+                borderRadius: "50%",
+                background: "#ff3c3c",
+                boxShadow: "0 0 6px #ff3c3c",
+                animation: "pulse 1.5s ease-in-out infinite",
+                "@keyframes pulse": {
+                  "0%, 100%": { opacity: 1, transform: "scale(1)" },
+                  "50%": { opacity: 0.5, transform: "scale(0.8)" },
+                },
+              }}
+            />
+            <Typography
+              sx={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#ff6060",
+                letterSpacing: 1.5,
+              }}
+            >
+              LIVE NOW
+            </Typography>
+          </Box>
+        ) : (
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 0.75,
+              background: "rgba(255,255,255,0.06)",
+              backdropFilter: "blur(12px)",
+              border: "1px solid rgba(255,255,255,0.12)",
+              borderRadius: "6px",
+              px: 1.25,
+              py: 0.5,
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#8888a8",
+                letterSpacing: 1.5,
+              }}
+            >
+              ACTIVE TOURNAMENTS
+            </Typography>
+          </Box>
+        )}
+      </Box>
+
+      {/* === SLIDE COUNTER === */}
+      <Box
+        sx={{
+          position: "absolute",
+          top: 16,
+          right: 16,
+          zIndex: 10,
+          background: "rgba(8,8,12,0.6)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(255,255,255,0.08)",
+          borderRadius: "6px",
+          px: 1.25,
+          py: 0.4,
+        }}
+      >
+        <Typography
+          sx={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 13,
+            color: "#555570",
+            letterSpacing: 2,
+          }}
+        >
+          <Box
+            component="span"
+            sx={{ color: game.accent, transition: "color 0.8s" }}
+          >
+            {String(current + 1).padStart(2, "0")}
+          </Box>
+          {" / "}
+          {String(GAMES.length).padStart(2, "0")}
+        </Typography>
+      </Box>
+
+      {/* === MAIN CONTENT === */}
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          zIndex: 5,
           display: "flex",
           flexDirection: "column",
           justifyContent: "flex-end",
-          p: { xs: 2.5, md: 3.5 },
+          p: { xs: 2.5, md: 3 },
+          pb: { xs: 3.5, md: 4 },
+          opacity: transitioning ? 0 : 1,
+          transform: transitioning ? "translateY(6px)" : "translateY(0)",
+          transition: "opacity 0.4s ease, transform 0.4s ease",
         }}
       >
-        {/* Icon + game label */}
-        <Box sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}>
-          <Typography sx={{ fontSize: 20 }}>{game.icon}</Typography>
+        {/* Game short label */}
+        <Box sx={{ display: "flex", alignItems: "center", gap: 1.5, mb: 0.75 }}>
+          <Box
+            sx={{
+              background: `${game.accent}20`,
+              border: `1px solid ${game.accent}40`,
+              borderRadius: "4px",
+              px: 1,
+              py: 0.2,
+              transition: "all 0.8s ease",
+            }}
+          >
+            <Typography
+              sx={{
+                fontFamily: "'Barlow Condensed', sans-serif",
+                fontSize: 10,
+                fontWeight: 700,
+                letterSpacing: 2,
+                color: game.accent,
+                transition: "color 0.8s ease",
+              }}
+            >
+              {game.short}
+            </Typography>
+          </Box>
           <Typography
             sx={{
               fontSize: 10,
-              letterSpacing: 3,
+              color: "#555570",
+              letterSpacing: 2,
               textTransform: "uppercase",
-              color: game.accent,
-              fontWeight: 500,
-              transition: "color 0.6s ease",
             }}
           >
             Featured Game
@@ -236,13 +399,13 @@ export default function GameCarousel() {
         <Typography
           sx={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: { xs: 32, md: 44 },
+            fontSize: { xs: 34, md: 48 },
             fontWeight: 900,
             color: "#fff",
-            lineHeight: 1,
-            mb: 1,
-            textShadow: `0 0 30px ${game.accent}40`,
-            transition: "text-shadow 0.6s ease",
+            lineHeight: 0.95,
+            mb: 1.25,
+            textShadow: `0 2px 20px rgba(0,0,0,0.8), 0 0 40px ${game.accent}20`,
+            transition: "text-shadow 0.8s ease",
           }}
         >
           {game.title}
@@ -252,31 +415,41 @@ export default function GameCarousel() {
         <Typography
           sx={{
             fontSize: 13,
-            color: "#8888a8",
+            color: "#9999b8",
             lineHeight: 1.6,
-            maxWidth: 320,
+            maxWidth: 300,
             mb: 2,
           }}
         >
           {game.description}
         </Typography>
 
-        {/* Stats — glassmorphism pills */}
-        <Box sx={{ display: "flex", gap: 1.5, mb: 2.5, flexWrap: "wrap" }}>
+        {/* Stats — glassmorphism cards */}
+        <Box sx={{ display: "flex", gap: 1.5, mb: 2.5 }}>
           {[
-            { label: "Tournaments", value: game.tournaments },
-            { label: "Prize Pool", value: game.prizePool },
+            {
+              label: "Active Tournaments",
+              value: game.tournaments,
+              suffix: "",
+            },
+            { label: "Total Prize Pool", value: game.prizePool, suffix: "" },
           ].map((stat) => (
             <Box
               key={stat.label}
               sx={{
                 background: "rgba(255,255,255,0.05)",
-                backdropFilter: "blur(10px)",
+                backdropFilter: "blur(16px)",
+                WebkitBackdropFilter: "blur(16px)",
                 border: `1px solid ${game.accent}25`,
-                borderRadius: 1.5,
-                px: 1.5,
-                py: 0.75,
-                transition: "border-color 0.6s ease",
+                borderRadius: "10px",
+                px: 2,
+                py: 1.25,
+                minWidth: 110,
+                transition: "border-color 0.8s ease",
+                "&:hover": {
+                  background: "rgba(255,255,255,0.08)",
+                  borderColor: `${game.accent}50`,
+                },
               }}
             >
               <Typography
@@ -285,6 +458,7 @@ export default function GameCarousel() {
                   color: "#555570",
                   letterSpacing: 1.5,
                   textTransform: "uppercase",
+                  mb: 0.5,
                 }}
               >
                 {stat.label}
@@ -292,11 +466,11 @@ export default function GameCarousel() {
               <Typography
                 sx={{
                   fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: 18,
-                  fontWeight: 700,
+                  fontSize: 26,
+                  fontWeight: 900,
+                  lineHeight: 1,
                   color: game.accent,
-                  lineHeight: 1.2,
-                  transition: "color 0.6s ease",
+                  transition: "color 0.8s ease",
                 }}
               >
                 {stat.value}
@@ -309,17 +483,23 @@ export default function GameCarousel() {
         <Box>
           <Button
             onClick={() => navigate("/tournaments")}
-            size="small"
             sx={{
               background: game.accent,
               color: "#0d0d10",
               fontWeight: 700,
               fontSize: 12,
               px: 2.5,
-              py: 0.75,
-              borderRadius: 1,
-              transition: "background 0.6s ease",
-              "&:hover": { background: "#fff", transform: "translateY(-1px)" },
+              py: 0.9,
+              borderRadius: "8px",
+              letterSpacing: 0.5,
+              transition:
+                "background 0.8s ease, transform 0.2s ease, box-shadow 0.2s ease",
+              boxShadow: `0 4px 20px ${game.accent}40`,
+              "&:hover": {
+                background: "#fff",
+                transform: "translateY(-2px)",
+                boxShadow: `0 8px 30px ${game.accent}50`,
+              },
             }}
           >
             View Tournaments →
@@ -327,88 +507,133 @@ export default function GameCarousel() {
         </Box>
       </Box>
 
-      {/* Nav arrows */}
+      {/* === NAV ARROWS === */}
       <IconButton
-        onClick={prev_}
+        onClick={prev}
         sx={{
           position: "absolute",
-          left: 12,
+          left: 14,
           top: "50%",
           transform: "translateY(-50%)",
-          zIndex: 3,
-          background: "rgba(13,13,16,0.7)",
+          zIndex: 10,
+          width: 36,
+          height: 36,
+          background: "rgba(8,8,12,0.7)",
+          backdropFilter: "blur(12px)",
+          border: `1px solid rgba(255,255,255,0.1)`,
           color: "#e8e8f0",
-          width: 32,
-          height: 32,
-          fontSize: 16,
-          border: "1px solid #1f1f2e",
+          transition: "all 0.2s ease",
           "&:hover": {
             background: game.accent,
             color: "#0d0d10",
             borderColor: game.accent,
+            transform: "translateY(-50%) scale(1.1)",
           },
-          transition: "all 0.2s",
         }}
       >
-        ‹
+        <Typography sx={{ fontSize: 18, lineHeight: 1, mt: "-2px" }}>
+          ‹
+        </Typography>
       </IconButton>
+
       <IconButton
         onClick={next}
         sx={{
           position: "absolute",
-          right: 12,
+          right: 14,
           top: "50%",
           transform: "translateY(-50%)",
-          zIndex: 3,
-          background: "rgba(13,13,16,0.7)",
+          zIndex: 10,
+          width: 36,
+          height: 36,
+          background: "rgba(8,8,12,0.7)",
+          backdropFilter: "blur(12px)",
+          border: `1px solid rgba(255,255,255,0.1)`,
           color: "#e8e8f0",
-          width: 32,
-          height: 32,
-          fontSize: 16,
-          border: "1px solid #1f1f2e",
+          transition: "all 0.2s ease",
           "&:hover": {
             background: game.accent,
             color: "#0d0d10",
             borderColor: game.accent,
+            transform: "translateY(-50%) scale(1.1)",
           },
-          transition: "all 0.2s",
         }}
       >
-        ›
+        <Typography sx={{ fontSize: 18, lineHeight: 1, mt: "-2px" }}>
+          ›
+        </Typography>
       </IconButton>
 
-      {/* Progress bar */}
+      {/* === BOTTOM BAR: DOTS + PROGRESS === */}
       <Box
         sx={{
           position: "absolute",
           bottom: 0,
           left: 0,
           right: 0,
-          height: 2,
-          background: "#1f1f2e",
-          zIndex: 3,
+          zIndex: 10,
         }}
       >
+        {/* Progress bar */}
+        <Box sx={{ height: 2, background: "rgba(255,255,255,0.06)" }}>
+          <Box
+            sx={{
+              height: "100%",
+              width: `${progress}%`,
+              background: `linear-gradient(to right, ${game.accent}80, ${game.accent})`,
+              boxShadow: `0 0 10px ${game.accent}80`,
+              transition: "background 0.8s ease, box-shadow 0.8s ease",
+            }}
+          />
+        </Box>
+
+        {/* Dots */}
         <Box
           sx={{
-            height: "100%",
-            background: game.accent,
-            width: `${progress}%`,
-            transition: "background 0.6s ease",
-            boxShadow: `0 0 8px ${game.accent}`,
+            display: "flex",
+            justifyContent: "center",
+            gap: 1,
+            py: 1.5,
+            background:
+              "linear-gradient(to top, rgba(8,8,12,0.8) 0%, transparent 100%)",
           }}
-        />
+        >
+          {GAMES.map((g, i) => (
+            <Box
+              key={i}
+              onClick={() => goTo(i)}
+              sx={{
+                height: 4,
+                width: i === current ? 24 : 6,
+                borderRadius: 2,
+                background:
+                  i === current ? game.accent : "rgba(255,255,255,0.2)",
+                cursor: "pointer",
+                transition: "all 0.4s ease",
+                boxShadow: i === current ? `0 0 8px ${game.accent}` : "none",
+                "&:hover": {
+                  background:
+                    i === current ? game.accent : "rgba(255,255,255,0.4)",
+                  transform: "scaleY(1.5)",
+                },
+              }}
+            />
+          ))}
+        </Box>
       </Box>
 
-      {/* Dots */}
+      {/* === THUMBNAIL STRIP (right edge) === */}
       <Box
         sx={{
           position: "absolute",
-          bottom: 16,
-          right: 16,
-          display: "flex",
-          gap: 0.75,
-          zIndex: 3,
+          right: 0,
+          top: "50%",
+          transform: "translateY(-50%)",
+          zIndex: 8,
+          display: { xs: "none", md: "flex" },
+          flexDirection: "column",
+          gap: 1,
+          pr: 1.5,
         }}
       >
         {GAMES.map((g, i) => (
@@ -416,44 +641,40 @@ export default function GameCarousel() {
             key={i}
             onClick={() => goTo(i)}
             sx={{
-              width: i === current ? 20 : 6,
-              height: 6,
-              borderRadius: 3,
-              background: i === current ? game.accent : "#333350",
+              width: 40,
+              height: 52,
+              borderRadius: "6px",
+              overflow: "hidden",
               cursor: "pointer",
-              transition: "all 0.3s ease, background 0.6s ease",
-              "&:hover": { background: game.accent },
+              border: `2px solid ${
+                i === current ? g.accent : "rgba(255,255,255,0.08)"
+              }`,
+              opacity: i === current ? 1 : 0.45,
+              transition: "all 0.3s ease",
+              boxShadow: i === current ? `0 0 12px ${g.accent}60` : "none",
+              "&:hover": { opacity: 1, borderColor: g.accent },
+              flexShrink: 0,
             }}
-          />
+          >
+            {!imgErrors[i] ? (
+              <Box
+                component="img"
+                src={g.img}
+                onError={() => setImgErrors((prev) => ({ ...prev, [i]: true }))}
+                sx={{
+                  width: "100%",
+                  height: "100%",
+                  objectFit: "cover",
+                  display: "block",
+                }}
+              />
+            ) : (
+              <Box
+                sx={{ width: "100%", height: "100%", background: g.fallbackBg }}
+              />
+            )}
+          </Box>
         ))}
-      </Box>
-
-      {/* Slide counter */}
-      <Box
-        sx={{
-          position: "absolute",
-          top: 16,
-          right: 16,
-          zIndex: 3,
-          background: "rgba(13,13,16,0.7)",
-          backdropFilter: "blur(10px)",
-          border: "1px solid #1f1f2e",
-          borderRadius: 1,
-          px: 1,
-          py: 0.25,
-        }}
-      >
-        <Typography
-          sx={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: 12,
-            color: "#555570",
-            letterSpacing: 1,
-          }}
-        >
-          {String(current + 1).padStart(2, "0")} /{" "}
-          {String(GAMES.length).padStart(2, "0")}
-        </Typography>
       </Box>
     </Box>
   );
