@@ -8,7 +8,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.Map;
 
 @Slf4j
@@ -26,15 +26,18 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationException(
             MethodArgumentNotValidException ex) {
-        Map<String, String> errors = new HashMap<>();
-        ex.getBindingResult().getAllErrors().forEach(error -> {
-            String fieldName = ((FieldError) error).getField();
-            String errorMessage = error.getDefaultMessage();
-            errors.put(fieldName, errorMessage);
-        });
+        Map<String, String> errors = new LinkedHashMap<>();
+        ex.getBindingResult().getFieldErrors().forEach((FieldError error) ->
+                errors.putIfAbsent(error.getField(), error.getDefaultMessage())
+        );
         return ResponseEntity
                 .badRequest()
-                .body(ApiResponse.error("VALIDATION_ERROR", "Validation failed"));
+                .body(ApiResponse.<Map<String, String>>builder()
+                        .success(false)
+                        .error("VALIDATION_ERROR")
+                        .message("Please fix the errors below")
+                        .data(errors)
+                        .build());
     }
 
     @ExceptionHandler(Exception.class)
@@ -43,6 +46,6 @@ public class GlobalExceptionHandler {
         return ResponseEntity
                 .internalServerError()
                 .body(ApiResponse.error("INTERNAL_ERROR",
-                        "An unexpected error occurred"));
+                        "An unexpected error occurred. Please try again."));
     }
 }
