@@ -28,14 +28,17 @@ public class SecurityConfig {
             .csrf(AbstractHttpConfigurer::disable)
             .sessionManagement(session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                .requestMatchers(
-                    "/api/v1/auth/**",
-                    "/actuator/health",
-                    "/actuator/info"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers(
+                                "/api/v1/auth/**",
+                                "/api/v1/games/**",
+                                "/api/v1/tournaments",
+                                "/api/v1/tournaments/{id}",
+                                "/actuator/health",
+                                "/actuator/info"
+                        ).permitAll()
+                        .anyRequest().authenticated()
+                )
             .addFilterBefore(jwtFilter,
                 UsernamePasswordAuthenticationFilter.class);
 
