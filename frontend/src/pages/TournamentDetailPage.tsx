@@ -1,0 +1,572 @@
+import { useEffect, useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import {
+  Box,
+  Typography,
+  Button,
+  Chip,
+  CircularProgress,
+  Alert,
+  Divider,
+  Grid,
+} from "@mui/material";
+import Navbar from "../components/Navbar";
+import { getTournament } from "../api/tournaments";
+import type { Tournament } from "../api/tournaments";
+import { useAuth } from "../context/AuthContext";
+
+const STATUS_COLOR: Record<string, string> = {
+  PUBLISHED: "#00ffe0",
+  LOCKED: "#7b5ef8",
+  COMPLETED: "#555570",
+  DRAFT: "#ff6b35",
+};
+
+const STATUS_LABEL: Record<string, string> = {
+  PUBLISHED: "Open for Registration",
+  LOCKED: "● Live",
+  COMPLETED: "Completed",
+  DRAFT: "Draft",
+};
+
+const FORMAT_LABEL: Record<string, string> = {
+  SINGLE_ELIMINATION: "Single Elimination",
+  DOUBLE_ELIMINATION: "Double Elimination",
+  ROUND_ROBIN: "Round Robin",
+  SWISS: "Swiss",
+};
+
+export default function TournamentDetailPage() {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { user } = useAuth();
+  const [tournament, setTournament] = useState<Tournament | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    if (!id) return;
+    getTournament(Number(id))
+      .then((res) => setTournament(res.data.data))
+      .catch(() => setError("Tournament not found."))
+      .finally(() => setLoading(false));
+  }, [id]);
+
+  const slotsLeft = tournament
+    ? tournament.maxParticipants - tournament.currentParticipants
+    : 0;
+
+  const fillPct = tournament
+    ? Math.round(
+        (tournament.currentParticipants / tournament.maxParticipants) * 100
+      )
+    : 0;
+
+  return (
+    <Box sx={{ minHeight: "100vh", background: "#0d0d10" }}>
+      <Navbar />
+
+      {loading && (
+        <Box sx={{ display: "flex", justifyContent: "center", pt: 12 }}>
+          <CircularProgress sx={{ color: "#00ffe0" }} />
+        </Box>
+      )}
+
+      {error && (
+        <Box sx={{ px: { xs: 3, md: 6 }, py: 5 }}>
+          <Alert
+            severity="error"
+            sx={{
+              background: "#ff000015",
+              color: "#ff6b6b",
+              border: "1px solid #ff000030",
+            }}
+          >
+            {error}
+          </Alert>
+          <Button
+            onClick={() => navigate("/tournaments")}
+            sx={{ mt: 2, color: "#00ffe0" }}
+          >
+            ← Back to Tournaments
+          </Button>
+        </Box>
+      )}
+
+      {!loading && !error && tournament && (
+        <>
+          {/* Hero banner */}
+          <Box
+            sx={{
+              px: { xs: 3, md: 6 },
+              py: 6,
+              borderBottom: "1px solid #1f1f2e",
+              background: `linear-gradient(to bottom, ${
+                STATUS_COLOR[tournament.status] ?? "#555570"
+              }10 0%, transparent 100%)`,
+            }}
+          >
+            <Button
+              onClick={() => navigate("/tournaments")}
+              sx={{
+                color: "#555570",
+                fontSize: 13,
+                mb: 3,
+                pl: 0,
+                "&:hover": { color: "#e8e8f0" },
+              }}
+            >
+              ← All Tournaments
+            </Button>
+
+            <Box
+              sx={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "flex-start",
+                flexWrap: "wrap",
+                gap: 3,
+              }}
+            >
+              <Box>
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 1.5,
+                    mb: 1.5,
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: 10,
+                      letterSpacing: 1.5,
+                      textTransform: "uppercase",
+                      color: "#555570",
+                    }}
+                  >
+                    {tournament.gameName}
+                  </Typography>
+                  <Chip
+                    label={STATUS_LABEL[tournament.status] ?? tournament.status}
+                    size="small"
+                    sx={{
+                      fontSize: 10,
+                      height: 20,
+                      background: `${
+                        STATUS_COLOR[tournament.status] ?? "#555570"
+                      }15`,
+                      color: STATUS_COLOR[tournament.status] ?? "#555570",
+                      border: `1px solid ${
+                        STATUS_COLOR[tournament.status] ?? "#555570"
+                      }30`,
+                      borderRadius: "3px",
+                    }}
+                  />
+                </Box>
+                <Typography
+                  sx={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontSize: { xs: 36, md: 52 },
+                    fontWeight: 900,
+                    color: "#fff",
+                    lineHeight: 1,
+                    mb: 1.5,
+                  }}
+                >
+                  {tournament.title}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontSize: 14,
+                    color: "#8888a8",
+                    maxWidth: 560,
+                    lineHeight: 1.7,
+                  }}
+                >
+                  {tournament.description}
+                </Typography>
+              </Box>
+
+              {/* CTA */}
+              <Box
+                sx={{
+                  background: "#13131c",
+                  border: "1px solid #1f1f2e",
+                  borderTop: `2px solid ${
+                    STATUS_COLOR[tournament.status] ?? "#555570"
+                  }`,
+                  borderRadius: 2,
+                  p: 3,
+                  minWidth: 220,
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: 10,
+                    color: "#555570",
+                    letterSpacing: 1,
+                    mb: 0.5,
+                  }}
+                >
+                  Prize Pool
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: "'Barlow Condensed', sans-serif",
+                    fontSize: 38,
+                    fontWeight: 900,
+                    color: "#fff",
+                    lineHeight: 1,
+                    mb: 0.5,
+                  }}
+                >
+                  {tournament.prizePool
+                    ? `$${tournament.prizePool.toLocaleString()}`
+                    : "Free"}
+                </Typography>
+                {tournament.prizeDescription && (
+                  <Typography sx={{ fontSize: 11, color: "#555570", mb: 2 }}>
+                    {tournament.prizeDescription}
+                  </Typography>
+                )}
+
+                {/* Slots bar */}
+                <Box sx={{ mb: 2 }}>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      mb: 0.75,
+                    }}
+                  >
+                    <Typography sx={{ fontSize: 11, color: "#555570" }}>
+                      {tournament.currentParticipants} /{" "}
+                      {tournament.maxParticipants} players
+                    </Typography>
+                    <Typography sx={{ fontSize: 11, color: "#555570" }}>
+                      {slotsLeft} slots left
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      height: 4,
+                      background: "#1f1f2e",
+                      borderRadius: 2,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <Box
+                      sx={{
+                        height: "100%",
+                        borderRadius: 2,
+                        width: `${fillPct}%`,
+                        background:
+                          STATUS_COLOR[tournament.status] ?? "#555570",
+                        transition: "width 0.4s ease",
+                      }}
+                    />
+                  </Box>
+                </Box>
+
+                {tournament.status === "PUBLISHED" ? (
+                  user ? (
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      sx={{ py: 1.3, fontSize: 14, fontWeight: 500 }}
+                    >
+                      Register Now
+                    </Button>
+                  ) : (
+                    <Button
+                      fullWidth
+                      variant="contained"
+                      color="primary"
+                      onClick={() => navigate("/login")}
+                      sx={{ py: 1.3, fontSize: 14, fontWeight: 500 }}
+                    >
+                      Sign In to Register
+                    </Button>
+                  )
+                ) : (
+                  <Button
+                    fullWidth
+                    disabled
+                    sx={{
+                      py: 1.3,
+                      fontSize: 14,
+                      background: "#1f1f2e",
+                      color: "#555570",
+                    }}
+                  >
+                    {tournament.status === "DRAFT"
+                      ? "Not Open Yet"
+                      : tournament.status === "LOCKED"
+                      ? "Registration Closed"
+                      : "Tournament Ended"}
+                  </Button>
+                )}
+
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    color: "#555570",
+                    textAlign: "center",
+                    mt: 1.5,
+                  }}
+                >
+                  Hosted by {tournament.organizerUsername}
+                </Typography>
+              </Box>
+            </Box>
+          </Box>
+
+          {/* Details */}
+          <Box sx={{ px: { xs: 3, md: 6 }, py: 5 }}>
+            <Grid container spacing={4}>
+              {/* Left — info */}
+              <Grid item xs={12} md={8}>
+                {/* Stats row */}
+                <Grid container spacing={1.5} sx={{ mb: 4 }}>
+                  {[
+                    {
+                      label: "Format",
+                      value:
+                        FORMAT_LABEL[tournament.format] ?? tournament.format,
+                    },
+                    {
+                      label: "Type",
+                      value: tournament.tournamentType?.replace("_", " "),
+                    },
+                    {
+                      label: "Entry Fee",
+                      value: tournament.entryFee
+                        ? `$${tournament.entryFee}`
+                        : "Free",
+                    },
+                    { label: "Max Players", value: tournament.maxParticipants },
+                  ].map((stat) => (
+                    <Grid item xs={6} sm={3} key={stat.label}>
+                      <Box
+                        sx={{
+                          background: "#13131c",
+                          border: "1px solid #1f1f2e",
+                          borderRadius: 2,
+                          p: 2,
+                          textAlign: "center",
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: 10,
+                            color: "#555570",
+                            letterSpacing: 1,
+                            textTransform: "uppercase",
+                            mb: 0.5,
+                          }}
+                        >
+                          {stat.label}
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontFamily: "'Barlow Condensed', sans-serif",
+                            fontSize: 20,
+                            fontWeight: 700,
+                            color: "#e8e8f0",
+                          }}
+                        >
+                          {stat.value ?? "—"}
+                        </Typography>
+                      </Box>
+                    </Grid>
+                  ))}
+                </Grid>
+
+                {/* Rules */}
+                {tournament.rules && (
+                  <>
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        letterSpacing: 3,
+                        textTransform: "uppercase",
+                        color: "#555570",
+                        mb: 2,
+                      }}
+                    >
+                      Rules
+                    </Typography>
+                    <Box
+                      sx={{
+                        background: "#13131c",
+                        border: "1px solid #1f1f2e",
+                        borderRadius: 2,
+                        p: 3,
+                        mb: 4,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: 14,
+                          color: "#8888a8",
+                          lineHeight: 1.8,
+                          whiteSpace: "pre-line",
+                        }}
+                      >
+                        {tournament.rules}
+                      </Typography>
+                    </Box>
+                  </>
+                )}
+
+                {/* Dates */}
+                {(tournament.startDate || tournament.endDate) && (
+                  <>
+                    <Typography
+                      sx={{
+                        fontSize: 11,
+                        letterSpacing: 3,
+                        textTransform: "uppercase",
+                        color: "#555570",
+                        mb: 2,
+                      }}
+                    >
+                      Schedule
+                    </Typography>
+                    <Box
+                      sx={{
+                        background: "#13131c",
+                        border: "1px solid #1f1f2e",
+                        borderRadius: 2,
+                        p: 3,
+                      }}
+                    >
+                      <Box sx={{ display: "flex", gap: 6 }}>
+                        {tournament.startDate && (
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontSize: 10,
+                                color: "#555570",
+                                letterSpacing: 1,
+                                mb: 0.5,
+                              }}
+                            >
+                              Starts
+                            </Typography>
+                            <Typography sx={{ fontSize: 15, color: "#e8e8f0" }}>
+                              {new Date(
+                                tournament.startDate
+                              ).toLocaleDateString("en-US", {
+                                month: "long",
+                                day: "numeric",
+                                year: "numeric",
+                              })}
+                            </Typography>
+                          </Box>
+                        )}
+                        {tournament.endDate && (
+                          <Box>
+                            <Typography
+                              sx={{
+                                fontSize: 10,
+                                color: "#555570",
+                                letterSpacing: 1,
+                                mb: 0.5,
+                              }}
+                            >
+                              Ends
+                            </Typography>
+                            <Typography sx={{ fontSize: 15, color: "#e8e8f0" }}>
+                              {new Date(tournament.endDate).toLocaleDateString(
+                                "en-US",
+                                {
+                                  month: "long",
+                                  day: "numeric",
+                                  year: "numeric",
+                                }
+                              )}
+                            </Typography>
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  </>
+                )}
+              </Grid>
+
+              {/* Right — participants placeholder */}
+              <Grid item xs={12} md={4}>
+                <Typography
+                  sx={{
+                    fontSize: 11,
+                    letterSpacing: 3,
+                    textTransform: "uppercase",
+                    color: "#555570",
+                    mb: 2,
+                  }}
+                >
+                  Participants
+                </Typography>
+                <Box
+                  sx={{
+                    background: "#13131c",
+                    border: "1px solid #1f1f2e",
+                    borderRadius: 2,
+                    p: 3,
+                    textAlign: "center",
+                  }}
+                >
+                  {tournament.currentParticipants === 0 ? (
+                    <>
+                      <Typography
+                        sx={{
+                          fontFamily: "'Barlow Condensed', sans-serif",
+                          fontSize: 42,
+                          fontWeight: 900,
+                          color: "#1f1f2e",
+                          lineHeight: 1,
+                        }}
+                      >
+                        0
+                      </Typography>
+                      <Typography
+                        sx={{ fontSize: 13, color: "#555570", mt: 1 }}
+                      >
+                        No participants yet. Be the first!
+                      </Typography>
+                    </>
+                  ) : (
+                    <Typography
+                      sx={{
+                        fontFamily: "'Barlow Condensed', sans-serif",
+                        fontSize: 42,
+                        fontWeight: 900,
+                        color: "#fff",
+                        lineHeight: 1,
+                      }}
+                    >
+                      {tournament.currentParticipants}
+                      <Typography
+                        component="span"
+                        sx={{
+                          fontSize: 16,
+                          color: "#555570",
+                          fontFamily: "inherit",
+                        }}
+                      >
+                        /{tournament.maxParticipants}
+                      </Typography>
+                    </Typography>
+                  )}
+                </Box>
+              </Grid>
+            </Grid>
+          </Box>
+        </>
+      )}
+    </Box>
+  );
+}
