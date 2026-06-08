@@ -1,5 +1,7 @@
 import { Box, Button, Typography, Grid, Chip } from "@mui/material";
+import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
+import GameCarousel from "../components/GameCarousel";
 
 const TOURNAMENTS = [
   {
@@ -56,6 +58,8 @@ const STEPS = [
 ];
 
 export default function LandingPage() {
+  const navigate = useNavigate();
+
   return (
     <Box sx={{ minHeight: "100vh", background: "#0d0d10" }}>
       <Navbar />
@@ -67,93 +71,111 @@ export default function LandingPage() {
           py: { xs: 7, md: 9 },
           borderBottom: "1px solid #1f1f2e",
           background:
-            "radial-gradient(ellipse at 70% 0%, rgba(0,255,224,0.07) 0%, transparent 60%)",
+            "radial-gradient(ellipse at 30% 0%, rgba(0,255,224,0.07) 0%, transparent 60%)",
         }}
       >
-        <Typography
-          sx={{
-            fontSize: 11,
-            letterSpacing: 3,
-            textTransform: "uppercase",
-            color: "#00ffe0",
-            mb: 2,
-          }}
-        >
-          Gaming Tournament Platform
-        </Typography>
-        <Typography
-          variant="h1"
-          sx={{
-            fontSize: { xs: 52, md: 72 },
-            lineHeight: 0.95,
-            color: "#fff",
-            mb: 2.5,
-          }}
-        >
-          COMPETE.
-          <br />
-          <Box component="span" sx={{ color: "#00ffe0" }}>
-            BATTLE.
-          </Box>
-          <br />
-          DOMINATE.
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: 15,
-            color: "#8888a8",
-            maxWidth: 400,
-            lineHeight: 1.7,
-            mb: 4,
-          }}
-        >
-          Join brackets, run tournaments, and prove you're the best. Built for
-          the US gaming community.
-        </Typography>
-        <Box sx={{ display: "flex", gap: 1.5, alignItems: "center" }}>
-          <Button
-            variant="contained"
-            color="primary"
-            sx={{ px: 3.5, py: 1.3, fontSize: 14, fontWeight: 500 }}
-          >
-            Browse Tournaments
-          </Button>
-          <Button sx={{ color: "#8888a8", fontSize: 14 }}>
-            Host a Tournament →
-          </Button>
-        </Box>
-
         <Box
           sx={{
             display: "flex",
-            gap: 5,
-            mt: 6,
-            pt: 4,
-            borderTop: "1px solid #1f1f2e",
+            gap: 6,
+            alignItems: "center",
+            flexWrap: "wrap",
           }}
         >
-          {[
-            ["1,240", "Active Players"],
-            ["86", "Tournaments Run"],
-            ["6", "Games Supported"],
-          ].map(([val, label]) => (
-            <Box key={label}>
-              <Typography
-                sx={{
-                  fontFamily: "'Barlow Condensed', sans-serif",
-                  fontSize: 32,
-                  fontWeight: 700,
-                  color: "#fff",
-                  lineHeight: 1,
-                }}
+          {/* Left — text */}
+          <Box sx={{ flex: "1 1 340px", minWidth: 280 }}>
+            <Typography
+              sx={{
+                fontSize: 11,
+                letterSpacing: 3,
+                textTransform: "uppercase",
+                color: "#00ffe0",
+                mb: 2,
+              }}
+            >
+              Gaming Tournament Platform
+            </Typography>
+            <Typography
+              variant="h1"
+              sx={{
+                fontSize: { xs: 52, md: 68 },
+                lineHeight: 0.95,
+                color: "#fff",
+                mb: 2.5,
+              }}
+            >
+              COMPETE.
+              <br />
+              <Box component="span" sx={{ color: "#00ffe0" }}>
+                BATTLE.
+              </Box>
+              <br />
+              DOMINATE.
+            </Typography>
+            <Typography
+              sx={{
+                fontSize: 15,
+                color: "#8888a8",
+                maxWidth: 400,
+                lineHeight: 1.7,
+                mb: 4,
+              }}
+            >
+              Join brackets, run tournaments, and prove you're the best. Built
+              for the US gaming community.
+            </Typography>
+            <Box
+              sx={{ display: "flex", gap: 1.5, alignItems: "center", mb: 5 }}
+            >
+              <Button
+                variant="contained"
+                color="primary"
+                onClick={() => navigate("/tournaments")}
+                sx={{ px: 3.5, py: 1.3, fontSize: 14, fontWeight: 500 }}
               >
-                {val}
-              </Typography>
-              <Typography sx={{ fontSize: 12, color: "#555570", mt: 0.5 }}>
-                {label}
-              </Typography>
+                Browse Tournaments
+              </Button>
+              <Button sx={{ color: "#8888a8", fontSize: 14 }}>
+                Host a Tournament →
+              </Button>
             </Box>
-          ))}
+            <Box
+              sx={{
+                display: "flex",
+                gap: 5,
+                pt: 4,
+                borderTop: "1px solid #1f1f2e",
+              }}
+            >
+              {[
+                ["1,240", "Active Players"],
+                ["86", "Tournaments Run"],
+                ["6", "Games Supported"],
+              ].map(([val, label]) => (
+                <Box key={label}>
+                  <Typography
+                    sx={{
+                      fontFamily: "'Barlow Condensed', sans-serif",
+                      fontSize: 32,
+                      fontWeight: 700,
+                      color: "#fff",
+                      lineHeight: 1,
+                    }}
+                  >
+                    {val}
+                  </Typography>
+                  <Typography sx={{ fontSize: 12, color: "#555570", mt: 0.5 }}>
+                    {label}
+                  </Typography>
+                </Box>
+              ))}
+            </Box>
+          </Box>
+
+          {/* Right — carousel */}
+          <Box sx={{ flex: "1 1 400px", minWidth: 300 }}>
+            <GameCarousel />
+          </Box>
         </Box>
       </Box>
 
@@ -331,6 +353,7 @@ export default function LandingPage() {
         <Button
           variant="contained"
           color="primary"
+          onClick={() => navigate("/register")}
           sx={{ px: 3.5, py: 1.3, fontSize: 14 }}
         >
           Create Account — It's Free
