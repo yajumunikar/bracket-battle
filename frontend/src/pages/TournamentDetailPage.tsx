@@ -7,26 +7,34 @@ import {
   Chip,
   CircularProgress,
   Alert,
-  Divider,
   Grid,
 } from "@mui/material";
 import Navbar from "../components/Navbar";
-import { getTournament } from "../api/tournaments";
+import {
+  getTournament,
+  registerForTournament,
+  checkRegistration,
+  unregisterFromTournament,
+} from "../api/tournaments";
 import type { Tournament } from "../api/tournaments";
 import { useAuth } from "../context/AuthContext";
 
 const STATUS_COLOR: Record<string, string> = {
-  PUBLISHED: "#00ffe0",
+  OPEN: "#00ffe0",
   LOCKED: "#7b5ef8",
   COMPLETED: "#555570",
   DRAFT: "#ff6b35",
+  IN_PROGRESS: "#7b5ef8",
+  CANCELLED: "#555570",
 };
 
 const STATUS_LABEL: Record<string, string> = {
-  PUBLISHED: "Open for Registration",
+  OPEN: "Open for Registration",
   LOCKED: "● Live",
   COMPLETED: "Completed",
   DRAFT: "Draft",
+  IN_PROGRESS: "● In Progress",
+  CANCELLED: "Cancelled",
 };
 
 const FORMAT_LABEL: Record<string, string> = {
@@ -43,6 +51,9 @@ export default function TournamentDetailPage() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [isRegistered, setIsRegistered] = useState(false);
+  const [regLoading, setRegLoading] = useState(false);
+  const [regMessage, setRegMessage] = useState("");
 
   useEffect(() => {
     if (!id) return;
@@ -52,10 +63,56 @@ export default function TournamentDetailPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    if (!user || !id) return;
+    checkRegistration(Number(id))
+      .then((res) => setIsRegistered(res.data.data))
+      .catch(() => {});
+  }, [user, id]);
+
+  const handleRegister = async () => {
+    if (!user || !id) return;
+    setRegLoading(true);
+    setRegMessage("");
+    try {
+      await registerForTournament(Number(id));
+      setIsRegistered(true);
+      setRegMessage("You are registered!");
+      setTournament((prev) =>
+        prev
+          ? { ...prev, currentParticipants: prev.currentParticipants + 1 }
+          : prev
+      );
+    } catch (e: any) {
+      setRegMessage(e.response?.data?.message ?? "Registration failed.");
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
+  const handleUnregister = async () => {
+    if (!user || !id) return;
+    setRegLoading(true);
+    setRegMessage("");
+    try {
+      await unregisterFromTournament(Number(id));
+      setIsRegistered(false);
+      setRegMessage("Registration cancelled.");
+      setTournament((prev) =>
+        prev
+          ? { ...prev, currentParticipants: prev.currentParticipants - 1 }
+          : prev
+      );
+    } catch (e: any) {
+      setRegMessage(e.response?.data?.message ?? "Failed to unregister.");
+    } finally {
+      setRegLoading(false);
+    }
+  };
+
   const slotsLeft = tournament
     ? tournament.maxParticipants - tournament.currentParticipants
     : 0;
-
   const fillPct = tournament
     ? Math.round(
         (tournament.currentParticipants / tournament.maxParticipants) * 100
@@ -95,7 +152,6 @@ export default function TournamentDetailPage() {
 
       {!loading && !error && tournament && (
         <>
-          {/* Hero banner */}
           <Box
             sx={{
               px: { xs: 3, md: 6 },
@@ -188,7 +244,6 @@ export default function TournamentDetailPage() {
                 </Typography>
               </Box>
 
-              {/* CTA */}
               <Box
                 sx={{
                   background: "#13131c",
@@ -231,7 +286,6 @@ export default function TournamentDetailPage() {
                   </Typography>
                 )}
 
-                {/* Slots bar */}
                 <Box sx={{ mb: 2 }}>
                   <Box
                     sx={{
@@ -269,16 +323,54 @@ export default function TournamentDetailPage() {
                   </Box>
                 </Box>
 
-                {tournament.status === "PUBLISHED" ? (
+                {regMessage && (
+                  <Typography
+                    sx={{
+                      fontSize: 12,
+                      mb: 1.5,
+                      textAlign: "center",
+                      color: regMessage.includes("registered")
+                        ? "#00ffe0"
+                        : "#ff6b6b",
+                    }}
+                  >
+                    {regMessage}
+                  </Typography>
+                )}
+
+                {tournament.status === "OPEN" ? (
                   user ? (
-                    <Button
-                      fullWidth
-                      variant="contained"
-                      color="primary"
-                      sx={{ py: 1.3, fontSize: 14, fontWeight: 500 }}
-                    >
-                      Register Now
-                    </Button>
+                    isRegistered ? (
+                      <Button
+                        fullWidth
+                        variant="outlined"
+                        onClick={handleUnregister}
+                        disabled={regLoading}
+                        sx={{
+                          py: 1.3,
+                          fontSize: 14,
+                          borderColor: "#ff4444",
+                          color: "#ff4444",
+                          "&:hover": {
+                            borderColor: "#ff6666",
+                            background: "#ff444415",
+                          },
+                        }}
+                      >
+                        {regLoading ? "Processing..." : "Withdraw Registration"}
+                      </Button>
+                    ) : (
+                      <Button
+                        fullWidth
+                        variant="contained"
+                        color="primary"
+                        onClick={handleRegister}
+                        disabled={regLoading}
+                        sx={{ py: 1.3, fontSize: 14, fontWeight: 500 }}
+                      >
+                        {regLoading ? "Registering..." : "Register Now"}
+                      </Button>
+                    )
                   ) : (
                     <Button
                       fullWidth
@@ -323,12 +415,9 @@ export default function TournamentDetailPage() {
             </Box>
           </Box>
 
-          {/* Details */}
           <Box sx={{ px: { xs: 3, md: 6 }, py: 5 }}>
             <Grid container spacing={4}>
-              {/* Left — info */}
               <Grid item xs={12} md={8}>
-                {/* Stats row */}
                 <Grid container spacing={1.5} sx={{ mb: 4 }}>
                   {[
                     {
@@ -384,7 +473,6 @@ export default function TournamentDetailPage() {
                   ))}
                 </Grid>
 
-                {/* Rules */}
                 {tournament.rules && (
                   <>
                     <Typography
@@ -421,7 +509,6 @@ export default function TournamentDetailPage() {
                   </>
                 )}
 
-                {/* Dates */}
                 {(tournament.startDate || tournament.endDate) && (
                   <>
                     <Typography
@@ -497,7 +584,6 @@ export default function TournamentDetailPage() {
                 )}
               </Grid>
 
-              {/* Right — participants placeholder */}
               <Grid item xs={12} md={4}>
                 <Typography
                   sx={{
@@ -549,7 +635,7 @@ export default function TournamentDetailPage() {
                       }}
                     >
                       {tournament.currentParticipants}
-                      <Typography
+                      <Box
                         component="span"
                         sx={{
                           fontSize: 16,
@@ -558,7 +644,7 @@ export default function TournamentDetailPage() {
                         }}
                       >
                         /{tournament.maxParticipants}
-                      </Typography>
+                      </Box>
                     </Typography>
                   )}
                 </Box>

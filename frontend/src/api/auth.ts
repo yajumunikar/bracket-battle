@@ -4,13 +4,25 @@ const API = axios.create({
   baseURL: "http://localhost:8080/api/v1",
 });
 
+API.interceptors.request.use((config) => {
+  const stored = localStorage.getItem("bb_user");
+  if (stored) {
+    const user = JSON.parse(stored);
+    config.headers.Authorization = `Bearer ${user.accessToken}`;
+  }
+  return config;
+});
+
 export interface AuthResponse {
   success: boolean;
   data: {
-    token: string;
+    accessToken: string;
     username: string;
+    displayName: string;
     email: string;
     role: string;
+    userId: number;
+    tokenType: string | null;
   };
 }
 

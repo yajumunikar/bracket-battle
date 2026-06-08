@@ -38,3 +38,14 @@ export const getTournaments = () =>
 
 export const getTournament = (id: number) =>
   API.get<TournamentResponse>(`/tournaments/${id}`);
+
+export const registerForTournament = (tournamentId: number) =>
+  API.post(`/tournaments/${tournamentId}/registrations`);
+
+export const checkRegistration = (tournamentId: number) =>
+  API.get<{ success: boolean; data: boolean }>(
+    `/tournaments/${tournamentId}/registrations/me`
+  );
+
+export const unregisterFromTournament = (tournamentId: number) =>
+  API.delete(`/tournaments/${tournamentId}/registrations`);
