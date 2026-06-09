@@ -126,6 +126,7 @@ export default function RegisterPage() {
           fullWidth
           label="Username"
           value={username}
+          autoComplete="off"
           onChange={(e) => setUsername(e.target.value)}
           error={!!fieldErrors.username}
           helperText={fieldErrors.username}
@@ -137,6 +138,7 @@ export default function RegisterPage() {
           label="Email"
           type="email"
           value={email}
+          autoComplete="off"
           onChange={(e) => setEmail(e.target.value)}
           error={!!fieldErrors.email}
           helperText={fieldErrors.email}
@@ -148,11 +150,12 @@ export default function RegisterPage() {
           label="Password"
           type={showPassword ? "text" : "password"}
           value={password}
+          autoComplete="new-password"
           onChange={(e) => setPassword(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
           error={!!fieldErrors.password}
-          helperText={fieldErrors.password}
-          sx={fieldSx("#00ffe0")}
+          helperText={fieldErrors.password || "Minimum 8 characters"}
+          sx={fieldSx("#7b5ef8")}
           margin="normal"
           slotProps={{
             input: {
@@ -161,7 +164,7 @@ export default function RegisterPage() {
                   <IconButton
                     onClick={() => setShowPassword(!showPassword)}
                     edge="end"
-                    sx={{ color: "#555570", "&:hover": { color: "#00ffe0" } }}
+                    sx={{ color: "#555570", "&:hover": { color: "#7b5ef8" } }}
                   >
                     {showPassword ? <VisibilityOff /> : <Visibility />}
                   </IconButton>
