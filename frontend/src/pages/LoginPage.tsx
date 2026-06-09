@@ -169,6 +169,10 @@ const fieldSx = (accent: string) => ({
     "&:hover fieldset": { borderColor: "#555570" },
     "&.Mui-focused fieldset": { borderColor: accent },
     "&.Mui-error fieldset": { borderColor: "#ff4444" },
+    "& input:-webkit-autofill": {
+      WebkitBoxShadow: "0 0 0 1000px #0d0d10 inset",
+      WebkitTextFillColor: "#e8e8f0",
+    },
   },
   "& .MuiInputLabel-root.Mui-focused": { color: accent },
   "& .MuiInputLabel-root.Mui-error": { color: "#ff4444" },

@@ -52,7 +52,7 @@ export default function RegisterPage() {
           sx={{
             fontFamily: "'Orbitron', sans-serif",
             fontWeight: 900,
-            fontSize: 24,
+            fontSize: 28,
             letterSpacing: 2,
             color: "#fff",
             "& span": { color: "#00ffe0" },
@@ -80,7 +80,7 @@ export default function RegisterPage() {
             fontWeight: 500,
             letterSpacing: 3,
             textTransform: "uppercase",
-            color: "#00ffe0",
+            color: "#7b5ef8",
             mb: 1,
           }}
         >
@@ -89,7 +89,7 @@ export default function RegisterPage() {
         <Typography
           sx={{
             fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: 36,
+            fontSize: 42,
             fontWeight: 900,
             color: "#fff",
             mb: 3,
@@ -187,6 +187,10 @@ const fieldSx = (accent: string) => ({
     "&:hover fieldset": { borderColor: "#555570" },
     "&.Mui-focused fieldset": { borderColor: accent },
     "&.Mui-error fieldset": { borderColor: "#ff4444" },
+    "& input:-webkit-autofill": {
+      WebkitBoxShadow: "0 0 0 1000px #0d0d10 inset",
+      WebkitTextFillColor: "#e8e8f0",
+    },
   },
   "& .MuiInputLabel-root.Mui-focused": { color: accent },
   "& .MuiInputLabel-root.Mui-error": { color: "#ff4444" },
