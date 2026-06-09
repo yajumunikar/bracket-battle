@@ -20,6 +20,11 @@ export default function LoginPage() {
     try {
       const res = await loginRequest(email, password);
       login(res.data.data);
+      // fetch avatarUrl from profile
+      try {
+        const profileRes = await API.get("/users/me");
+        updateUser({ avatarUrl: profileRes.data.data.avatarUrl });
+      } catch {}
       navigate("/tournaments");
     } catch (e) {
       const { general, fields } = extractErrors(e);

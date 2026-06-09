@@ -7,6 +7,7 @@ import com.bracketbattle.modules.tournament.repository.TournamentRepository;
 import com.bracketbattle.modules.user.dto.ProfileDto;
 import com.bracketbattle.modules.user.entity.User;
 import com.bracketbattle.modules.user.repository.UserRepository;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -35,6 +36,32 @@ public class ProfileController {
         User user = userRepository.findByUsername(username)
                 .orElseThrow(() -> AppException.notFound("User not found"));
         return ResponseEntity.ok(ApiResponse.success(buildProfile(user)));
+    }
+
+    @PutMapping("/me")
+    public ResponseEntity<ApiResponse<ProfileDto>> updateProfile(
+            @AuthenticationPrincipal Long userId,
+            @RequestBody UpdateProfileRequest request) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> AppException.notFound("User not found"));
+        if (request.getDisplayName() != null && !request.getDisplayName().isBlank()) {
+            user.setDisplayName(request.getDisplayName());
+        }
+        if (request.getBio() != null) {
+            user.setBio(request.getBio());
+        }
+        if (request.getAvatarUrl() != null) {
+            user.setAvatarUrl(request.getAvatarUrl());
+        }
+        userRepository.save(user);
+        return ResponseEntity.ok(ApiResponse.success(buildProfile(user), "Profile updated"));
+    }
+
+    @Data
+    static class UpdateProfileRequest {
+        private String displayName;
+        private String bio;
+        private String avatarUrl;
     }
 
     private ProfileDto buildProfile(User user) {

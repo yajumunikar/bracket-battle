@@ -17,6 +17,14 @@ export interface ProfileResponse {
   data: Profile;
 }
 
+export interface UpdateProfileRequest {
+  displayName?: string;
+  bio?: string;
+  avatarUrl?: string;
+}
+
 export const getMyProfile = () => API.get<ProfileResponse>("/users/me");
 export const getUserProfile = (username: string) =>
   API.get<ProfileResponse>(`/users/${username}`);
+export const updateProfile = (data: UpdateProfileRequest) =>
+  API.put<ProfileResponse>("/users/me", data);
