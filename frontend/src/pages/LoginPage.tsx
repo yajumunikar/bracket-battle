@@ -1,5 +1,14 @@
 import { useState } from "react";
-import { Box, Button, TextField, Typography, Alert } from "@mui/material";
+import {
+  Box,
+  Button,
+  TextField,
+  Typography,
+  Alert,
+  IconButton,
+  InputAdornment,
+} from "@mui/material";
+import { Visibility, VisibilityOff } from "@mui/icons-material";
 import { useNavigate, Link } from "react-router-dom";
 import { loginRequest, extractErrors } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
@@ -9,6 +18,7 @@ export default function LoginPage() {
   const navigate = useNavigate();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [general, setGeneral] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -125,7 +135,7 @@ export default function LoginPage() {
         <TextField
           fullWidth
           label="Password"
-          type="password"
+          type={showPassword ? "text" : "password"}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           onKeyDown={(e) => e.key === "Enter" && handleSubmit()}
@@ -133,6 +143,21 @@ export default function LoginPage() {
           helperText={fieldErrors.password}
           sx={fieldSx("#00ffe0")}
           margin="normal"
+          slotProps={{
+            input: {
+              endAdornment: (
+                <InputAdornment position="end">
+                  <IconButton
+                    onClick={() => setShowPassword(!showPassword)}
+                    edge="end"
+                    sx={{ color: "#555570", "&:hover": { color: "#00ffe0" } }}
+                  >
+                    {showPassword ? <VisibilityOff /> : <Visibility />}
+                  </IconButton>
+                </InputAdornment>
+              ),
+            },
+          }}
         />
 
         <Button
