@@ -4,6 +4,9 @@ export interface Game {
   id: number;
   name: string;
   slug: string;
+  logoUrl: string | null;
+  platform: string;
+  active: boolean;
 }
 
 export interface GamesResponse {

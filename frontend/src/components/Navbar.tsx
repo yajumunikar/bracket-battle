@@ -33,7 +33,12 @@ export default function Navbar() {
           >
             Tournaments
           </Button>
-          <Button sx={{ color: "#8888a8", fontSize: 13 }}>Games</Button>
+          <Button
+            onClick={() => navigate("/games")}
+            sx={{ color: "#8888a8", fontSize: 13 }}
+          >
+            Games
+          </Button>
           {user ? (
             <>
               <Button
