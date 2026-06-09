@@ -28,3 +28,7 @@ replay_pid*
 
 # Dev utilities
 backend/src/main/java/com/bracketbattle/HashGen.java
+
+backend/src/main/resources/application.yml
+
+backend/target/

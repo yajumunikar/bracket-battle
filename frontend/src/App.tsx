@@ -9,22 +9,26 @@ import MyTournamentsPage from "./pages/MyTournamentsPage";
 import BracketPage from "./pages/BracketPage";
 import GamesPage from "./pages/GamesPage";
 import ProfilePage from "./pages/ProfilePage";
+import ChatBot from "./components/ChatBot";
 
 function App() {
   return (
-    <Routes>
-      <Route path="/" element={<LandingPage />} />
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
-      <Route path="/games" element={<GamesPage />} />
-      <Route path="/tournaments" element={<TournamentsPage />} />
-      <Route path="/tournaments/create" element={<CreateTournamentPage />} />
-      <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
-      <Route path="/tournaments/:id/bracket" element={<BracketPage />} />
-      <Route path="/my-tournaments" element={<MyTournamentsPage />} />
-      <Route path="/profile" element={<ProfilePage />} />
-      <Route path="/profile/:username" element={<ProfilePage />} />
-    </Routes>
+    <>
+      <Routes>
+        <Route path="/" element={<LandingPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/register" element={<RegisterPage />} />
+        <Route path="/games" element={<GamesPage />} />
+        <Route path="/tournaments" element={<TournamentsPage />} />
+        <Route path="/tournaments/create" element={<CreateTournamentPage />} />
+        <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
+        <Route path="/tournaments/:id/bracket" element={<BracketPage />} />
+        <Route path="/my-tournaments" element={<MyTournamentsPage />} />
+        <Route path="/profile" element={<ProfilePage />} />
+        <Route path="/profile/:username" element={<ProfilePage />} />
+      </Routes>
+      <ChatBot />
+    </>
   );
 }
 
