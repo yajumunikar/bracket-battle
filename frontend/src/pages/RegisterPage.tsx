@@ -21,7 +21,6 @@ export default function RegisterPage() {
     try {
       const res = await registerRequest(username, email, password);
       login(res.data.data);
-      // fetch avatarUrl from profile
       try {
         const profileRes = await API.get("/users/me");
         updateUser({ avatarUrl: profileRes.data.data.avatarUrl });
@@ -42,10 +41,27 @@ export default function RegisterPage() {
         minHeight: "100vh",
         background: "#0d0d10",
         display: "flex",
+        flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
       }}
     >
+      {/* Logo */}
+      <Link to="/" style={{ textDecoration: "none", marginBottom: 24 }}>
+        <Typography
+          sx={{
+            fontFamily: "'Orbitron', sans-serif",
+            fontWeight: 900,
+            fontSize: 24,
+            letterSpacing: 2,
+            color: "#fff",
+            "& span": { color: "#00ffe0" },
+          }}
+        >
+          BRACKET<span>BATTLE</span>
+        </Typography>
+      </Link>
+
       <Box
         sx={{
           width: "100%",
@@ -59,15 +75,16 @@ export default function RegisterPage() {
       >
         <Typography
           sx={{
-            fontFamily: "'Barlow Condensed', sans-serif",
-            fontSize: 11,
+            fontFamily: "'DM Sans', sans-serif",
+            fontSize: 12,
+            fontWeight: 500,
             letterSpacing: 3,
             textTransform: "uppercase",
-            color: "#7b5ef8",
+            color: "#00ffe0",
             mb: 1,
           }}
         >
-          Join The Arena
+          Join the Arena
         </Typography>
         <Typography
           sx={{
