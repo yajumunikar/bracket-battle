@@ -2,7 +2,7 @@
 
 A full-stack gaming tournament management platform built for the US gaming community. Players can register for tournaments, organizers can manage brackets, and everyone can compete.
 
-**Live:** [thebracketbattle.com](https://thebracketbattle.com) _(deploying soon)_  
+**Live:** [thebracketbattle.com](https://thebracketbattle.com)
 **Backend:** REST API · Java 21 · Spring Boot 3  
 **Frontend:** React · TypeScript · Material UI
 
