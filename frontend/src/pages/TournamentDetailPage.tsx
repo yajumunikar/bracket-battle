@@ -178,6 +178,20 @@ export default function TournamentDetailPage() {
               ← All Tournaments
             </Button>
 
+            <Button
+              onClick={() => navigate(`/tournaments/${id}/bracket`)}
+              variant="outlined"
+              sx={{
+                borderColor: "#00ffe0",
+                color: "#00ffe0",
+                fontSize: 12,
+                mb: 3,
+                ml: 1,
+                "&:hover": { background: "#00ffe015" },
+              }}
+            >
+              View Bracket
+            </Button>
             <Box
               sx={{
                 display: "flex",
