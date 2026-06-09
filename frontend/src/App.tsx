@@ -8,6 +8,7 @@ import CreateTournamentPage from "./pages/CreateTournamentPage";
 import MyTournamentsPage from "./pages/MyTournamentsPage";
 import BracketPage from "./pages/BracketPage";
 import GamesPage from "./pages/GamesPage";
+import ProfilePage from "./pages/ProfilePage";
 
 function App() {
   return (
@@ -21,6 +22,8 @@ function App() {
       <Route path="/tournaments/:id" element={<TournamentDetailPage />} />
       <Route path="/tournaments/:id/bracket" element={<BracketPage />} />
       <Route path="/my-tournaments" element={<MyTournamentsPage />} />
+      <Route path="/profile" element={<ProfilePage />} />
+      <Route path="/profile/:username" element={<ProfilePage />} />
     </Routes>
   );
 }

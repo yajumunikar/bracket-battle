@@ -17,6 +17,8 @@ public interface TournamentRepository extends JpaRepository<Tournament, Long> {
 
     Optional<Tournament> findByIdAndDeletedAtIsNull(Long id);
 
+    int countByOrganizerIdAndDeletedAtIsNull(Long organizerId);
+
     Page<Tournament> findByDeletedAtIsNull(Pageable pageable);
 
     @Query("SELECT t FROM Tournament t WHERE t.deletedAt IS NULL " +

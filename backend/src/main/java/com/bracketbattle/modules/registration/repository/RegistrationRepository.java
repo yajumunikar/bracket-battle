@@ -17,4 +17,6 @@ public interface RegistrationRepository extends JpaRepository<Registration, Long
     Optional<Registration> findByTournamentIdAndUserId(Long tournamentId, Long userId);
 
     List<Registration> findByTournamentId(Long tournamentId);
+
+    int countByUserId(Long userId);
 }

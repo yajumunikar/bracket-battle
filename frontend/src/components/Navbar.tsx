@@ -47,7 +47,15 @@ export default function Navbar() {
               >
                 My Tournaments
               </Button>
-              <Typography sx={{ fontSize: 13, color: "#00ffe0" }}>
+              <Typography
+                onClick={() => navigate("/profile")}
+                sx={{
+                  fontSize: 13,
+                  color: "#00ffe0",
+                  cursor: "pointer",
+                  "&:hover": { color: "#fff" },
+                }}
+              >
                 {user.username}
               </Typography>
               <Button
