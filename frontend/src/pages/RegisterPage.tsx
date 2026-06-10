@@ -9,6 +9,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
+import CloseIcon from "@mui/icons-material/Close";
 import { useNavigate, Link } from "react-router-dom";
 import { registerRequest, extractErrors } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
@@ -23,6 +24,14 @@ export default function RegisterPage() {
   const [general, setGeneral] = useState("");
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
+
+  const handleClose = () => {
+    if (window.history.length > 1) {
+      navigate(-1);
+    } else {
+      navigate("/");
+    }
+  };
 
   const handleSubmit = async () => {
     setGeneral("");
@@ -81,8 +90,23 @@ export default function RegisterPage() {
           borderTop: "2px solid #7b5ef8",
           borderRadius: 2,
           p: 4,
+          position: "relative",
         }}
       >
+        {/* Close Button */}
+        <IconButton
+          onClick={handleClose}
+          sx={{
+            position: "absolute",
+            top: 12,
+            right: 12,
+            color: "#555570",
+            "&:hover": { color: "#e8e8f0", background: "#1f1f2e" },
+          }}
+        >
+          <CloseIcon fontSize="small" />
+        </IconButton>
+
         <Typography
           sx={{
             fontFamily: "'DM Sans', sans-serif",
