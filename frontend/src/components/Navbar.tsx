@@ -24,6 +24,7 @@ export default function Navbar() {
 
   const avatarSrc = user?.avatarUrl ?? null;
   const initials = user?.username?.slice(0, 2).toUpperCase() ?? "??";
+  const isAdmin = user?.role === "ADMIN";
 
   return (
     <AppBar
@@ -60,6 +61,24 @@ export default function Navbar() {
             Games
           </Button>
 
+          {/* Arena Intel — visible to all, locked page for non-admins */}
+          <Button
+            onClick={() => navigate("/intel")}
+            sx={{
+              fontSize: 13,
+              color: isAdmin ? "#ff6b35" : "#555570",
+              border: isAdmin ? "1px solid #ff6b3530" : "none",
+              borderRadius: "6px",
+              px: isAdmin ? 1.5 : 1,
+              "&:hover": {
+                color: isAdmin ? "#ff8c55" : "#8888a8",
+                background: isAdmin ? "#ff6b3510" : "transparent",
+              },
+            }}
+          >
+            {isAdmin ? "⚡ Arena Intel" : "Arena Intel"}
+          </Button>
+
           {user ? (
             <>
               <Button
@@ -90,7 +109,6 @@ export default function Navbar() {
                   },
                 }}
               >
-                {/* Avatar circle */}
                 <Box
                   sx={{
                     width: 28,
@@ -139,20 +157,21 @@ export default function Navbar() {
                 anchorEl={anchorEl}
                 open={Boolean(anchorEl)}
                 onClose={closeMenu}
-                PaperProps={{
-                  sx: {
-                    background: "#13131c",
-                    border: "1px solid #1f1f2e",
-                    borderTop: "2px solid #00ffe0",
-                    minWidth: 180,
-                    mt: 1,
-                    boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                slotProps={{
+                  paper: {
+                    sx: {
+                      background: "#13131c",
+                      border: "1px solid #1f1f2e",
+                      borderTop: "2px solid #00ffe0",
+                      minWidth: 180,
+                      mt: 1,
+                      boxShadow: "0 8px 32px rgba(0,0,0,0.5)",
+                    },
                   },
                 }}
                 transformOrigin={{ horizontal: "right", vertical: "top" }}
                 anchorOrigin={{ horizontal: "right", vertical: "bottom" }}
               >
-                {/* Profile header in menu */}
                 <Box sx={{ px: 2, py: 1.5, borderBottom: "1px solid #1f1f2e" }}>
                   <Typography
                     sx={{ fontSize: 13, fontWeight: 600, color: "#e8e8f0" }}
@@ -217,6 +236,26 @@ export default function Navbar() {
                   </ListItemIcon>
                   Host Tournament
                 </MenuItem>
+
+                {isAdmin && (
+                  <MenuItem
+                    onClick={() => {
+                      navigate("/intel");
+                      closeMenu();
+                    }}
+                    sx={{
+                      fontSize: 13,
+                      color: "#ff6b35",
+                      py: 1.25,
+                      "&:hover": { background: "#ff6b3510" },
+                    }}
+                  >
+                    <ListItemIcon sx={{ minWidth: 28 }}>
+                      <Typography sx={{ fontSize: 14 }}>⚡</Typography>
+                    </ListItemIcon>
+                    Arena Intel
+                  </MenuItem>
+                )}
 
                 <Divider sx={{ borderColor: "#1f1f2e", my: 0.5 }} />
 

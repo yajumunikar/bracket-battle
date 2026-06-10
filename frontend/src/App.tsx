@@ -9,6 +9,8 @@ import MyTournamentsPage from "./pages/MyTournamentsPage";
 import BracketPage from "./pages/BracketPage";
 import GamesPage from "./pages/GamesPage";
 import ProfilePage from "./pages/ProfilePage";
+import ArenaIntelPage from "./pages/ArenaIntelPage";
+import MatchPredictionPage from "./pages/MatchPredictionPage";
 import ChatBot from "./components/ChatBot";
 
 function App() {
@@ -26,6 +28,8 @@ function App() {
         <Route path="/my-tournaments" element={<MyTournamentsPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/profile/:username" element={<ProfilePage />} />
+        <Route path="/intel" element={<ArenaIntelPage />} />
+        <Route path="/intel/:id" element={<MatchPredictionPage />} />
       </Routes>
       <ChatBot />
     </>
