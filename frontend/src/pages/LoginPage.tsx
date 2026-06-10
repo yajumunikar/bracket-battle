@@ -10,13 +10,15 @@ import {
 } from "@mui/material";
 import { Visibility, VisibilityOff } from "@mui/icons-material";
 import CloseIcon from "@mui/icons-material/Close";
-import { useNavigate, Link } from "react-router-dom";
+import { useNavigate, Link, useSearchParams } from "react-router-dom";
 import { loginRequest, extractErrors } from "../api/auth";
 import { useAuth } from "../context/AuthContext";
 
 export default function LoginPage() {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const sessionExpired = searchParams.get("reason") === "session_expired";
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -130,6 +132,21 @@ export default function LoginPage() {
         >
           SIGN IN
         </Typography>
+
+        {/* Session expired banner */}
+        {sessionExpired && (
+          <Alert
+            severity="warning"
+            sx={{
+              mb: 2,
+              background: "#ff6b3515",
+              color: "#ff6b35",
+              border: "1px solid #ff6b3530",
+            }}
+          >
+            Your session has expired. Please sign in again.
+          </Alert>
+        )}
 
         {general && (
           <Alert

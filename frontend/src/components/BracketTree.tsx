@@ -23,6 +23,7 @@ const MATCH_W = 180;
 const MATCH_H = 80;
 const ROUND_GAP = 80;
 const MATCH_V_GAP = 24;
+const MATCH_H_WITH_BTN = 104; // taller when Report Result button shown
 
 export default function BracketTree({
   bracket,
@@ -43,17 +44,26 @@ export default function BracketTree({
       .sort((a, b) => a.matchNumber - b.matchNumber);
   }
 
-  // Calculate canvas size
+  const getMatchHeight = (match: MatchDto): number => {
+    const isClickable =
+      isOrganizer &&
+      match.status !== "COMPLETED" &&
+      match.status !== "BYE" &&
+      match.player1Id &&
+      match.player2Id;
+    return isClickable ? MATCH_H_WITH_BTN : MATCH_H;
+  };
+
   const round1Count = matchesByRound[1]?.length ?? 1;
-  const totalH = round1Count * (MATCH_H + MATCH_V_GAP) + 60;
+  const totalH = round1Count * (MATCH_H_WITH_BTN + MATCH_V_GAP) + 60;
   const totalW = rounds * (MATCH_W + ROUND_GAP) + 40;
 
   const getMatchY = (roundNum: number, matchNum: number): number => {
     const round1Count = matchesByRound[1]?.length ?? 1;
     const matchesInRound = Math.ceil(round1Count / Math.pow(2, roundNum - 1));
-    const totalH = round1Count * (MATCH_H + MATCH_V_GAP);
+    const totalH = round1Count * (MATCH_H_WITH_BTN + MATCH_V_GAP);
     const slotH = totalH / matchesInRound;
-    return (matchNum - 1) * slotH + slotH / 2 - MATCH_H / 2 + 30;
+    return (matchNum - 1) * slotH + slotH / 2 - MATCH_H_WITH_BTN / 2 + 30;
   };
 
   const getMatchX = (roundNum: number): number => {
@@ -106,11 +116,10 @@ export default function BracketTree({
             x={getMatchX(r) + MATCH_W / 2}
             y={20}
             textAnchor="middle"
-            fill="#555570"
+            fill="#8888a8"
             fontSize={10}
             fontFamily="DM Sans, sans-serif"
             letterSpacing={2}
-            style={{ textTransform: "uppercase" }}
           >
             {getRoundLabel(r).toUpperCase()}
           </text>
@@ -154,19 +163,11 @@ export default function BracketTree({
               !isBye &&
               match.player1Id &&
               match.player2Id;
-
-            const borderColor = isCompleted
-              ? "#00ffe040"
-              : isBye
-              ? "#7b5ef840"
-              : match.player1Id && match.player2Id
-              ? "#1f1f2e"
-              : "#13131c";
+            const matchH = getMatchHeight(match);
 
             return (
               <g
                 key={match.id}
-                onClick={() => handleMatchClick(match)}
                 style={{ cursor: isClickable ? "pointer" : "default" }}
               >
                 {/* Card background */}
@@ -174,15 +175,35 @@ export default function BracketTree({
                   x={x}
                   y={y}
                   width={MATCH_W}
-                  height={MATCH_H}
-                  rx={6}
-                  ry={6}
+                  height={matchH}
+                  rx={isClickable ? 0 : 6}
+                  ry={isClickable ? 0 : 6}
                   fill="#13131c"
-                  stroke={borderColor}
+                  stroke={isCompleted ? "#00ffe040" : "#1f1f2e"}
                   strokeWidth={1}
                 />
 
-                {/* Top accent line */}
+                {/* Cyan left border for active clickable matches */}
+                {isClickable && (
+                  <rect x={x} y={y} width={3} height={matchH} fill="#00ffe0" />
+                )}
+
+                {/* Right side rounded corners for clickable cards */}
+                {isClickable && (
+                  <rect
+                    x={x}
+                    y={y}
+                    width={MATCH_W}
+                    height={matchH}
+                    rx={6}
+                    ry={6}
+                    fill="none"
+                    stroke="#00ffe040"
+                    strokeWidth={1}
+                  />
+                )}
+
+                {/* Top accent line for completed */}
                 {isCompleted && (
                   <rect
                     x={x}
@@ -199,11 +220,13 @@ export default function BracketTree({
                   x={x + MATCH_W - 8}
                   y={y + 12}
                   textAnchor="end"
-                  fill="#333350"
+                  fill={isClickable ? "#00ffe0" : "#333350"}
                   fontSize={9}
                   fontFamily="DM Sans, sans-serif"
                 >
-                  M{match.matchNumber}
+                  {isClickable
+                    ? "M" + match.matchNumber + " · ACTIVE"
+                    : "M" + match.matchNumber}
                 </text>
 
                 {/* Divider */}
@@ -230,6 +253,13 @@ export default function BracketTree({
                   fontSize={12}
                   fontWeight={match.winnerId === match.player1Id ? 700 : 400}
                   fontFamily="DM Sans, sans-serif"
+                  textDecoration={
+                    isCompleted &&
+                    match.winnerId !== match.player1Id &&
+                    match.player1Id
+                      ? "line-through"
+                      : "none"
+                  }
                 >
                   {match.player1Username ?? "TBD"}
                 </text>
@@ -268,6 +298,13 @@ export default function BracketTree({
                   fontSize={12}
                   fontWeight={match.winnerId === match.player2Id ? 700 : 400}
                   fontFamily="DM Sans, sans-serif"
+                  textDecoration={
+                    isCompleted &&
+                    match.winnerId !== match.player2Id &&
+                    match.player2Id
+                      ? "line-through"
+                      : "none"
+                  }
                 >
                   {isBye ? "BYE" : match.player2Username ?? "TBD"}
                 </text>
@@ -292,19 +329,31 @@ export default function BracketTree({
                     </text>
                   )}
 
-                {/* Hover indicator for organizer */}
+                {/* Report Result button for active matches */}
                 {isClickable && (
-                  <rect
-                    x={x}
-                    y={y}
-                    width={MATCH_W}
-                    height={MATCH_H}
-                    rx={6}
-                    fill="transparent"
-                    stroke="#00ffe020"
-                    strokeWidth={0}
-                    className="match-hover"
-                  />
+                  <g onClick={() => handleMatchClick(match)}>
+                    <rect
+                      x={x + 8}
+                      y={y + MATCH_H + 6}
+                      width={MATCH_W - 16}
+                      height={22}
+                      rx={3}
+                      fill="#00ffe010"
+                      stroke="#00ffe030"
+                      strokeWidth={1}
+                    />
+                    <text
+                      x={x + MATCH_W / 2}
+                      y={y + MATCH_H + 21}
+                      textAnchor="middle"
+                      fill="#00ffe0"
+                      fontSize={10}
+                      fontFamily="DM Sans, sans-serif"
+                      letterSpacing={1}
+                    >
+                      REPORT RESULT
+                    </text>
+                  </g>
                 )}
               </g>
             );
@@ -316,11 +365,13 @@ export default function BracketTree({
       <Dialog
         open={!!selectedMatch}
         onClose={() => setSelectedMatch(null)}
-        PaperProps={{
-          sx: {
-            background: "#13131c",
-            border: "1px solid #1f1f2e",
-            minWidth: 340,
+        slotProps={{
+          paper: {
+            sx: {
+              background: "#13131c",
+              border: "1px solid #1f1f2e",
+              minWidth: 340,
+            },
           },
         }}
       >

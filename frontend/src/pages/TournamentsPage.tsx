@@ -4,9 +4,9 @@ import {
   Typography,
   Grid,
   Chip,
-  CircularProgress,
   Alert,
   Button,
+  Skeleton,
 } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
@@ -18,6 +18,7 @@ const STATUS_COLOR: Record<string, string> = {
   LOCKED: "#7b5ef8",
   COMPLETED: "#555570",
   DRAFT: "#ff6b35",
+  IN_PROGRESS: "#7b5ef8",
 };
 
 const STATUS_LABEL: Record<string, string> = {
@@ -25,7 +26,97 @@ const STATUS_LABEL: Record<string, string> = {
   LOCKED: "● Live",
   COMPLETED: "Completed",
   DRAFT: "Draft",
+  IN_PROGRESS: "● In Progress",
 };
+
+function TournamentCardSkeleton() {
+  return (
+    <Box
+      sx={{
+        background: "#13131c",
+        border: "1px solid #1f1f2e",
+        borderTop: "2px solid #1f1f2e",
+        borderRadius: 2,
+        p: 2.5,
+      }}
+    >
+      <Skeleton
+        variant="text"
+        width={80}
+        height={16}
+        sx={{ bgcolor: "#1f1f2e", mb: 0.75 }}
+      />
+      <Skeleton
+        variant="text"
+        width="70%"
+        height={28}
+        sx={{ bgcolor: "#1f1f2e", mb: 1.5 }}
+      />
+      <Skeleton
+        variant="text"
+        width="100%"
+        height={16}
+        sx={{ bgcolor: "#1f1f2e" }}
+      />
+      <Skeleton
+        variant="text"
+        width="60%"
+        height={16}
+        sx={{ bgcolor: "#1f1f2e", mb: 1.5 }}
+      />
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "flex-end",
+        }}
+      >
+        <Box>
+          <Skeleton
+            variant="text"
+            width={60}
+            height={14}
+            sx={{ bgcolor: "#1f1f2e" }}
+          />
+          <Skeleton
+            variant="text"
+            width={80}
+            height={36}
+            sx={{ bgcolor: "#1f1f2e" }}
+          />
+        </Box>
+        <Skeleton
+          variant="rounded"
+          width={55}
+          height={22}
+          sx={{ bgcolor: "#1f1f2e" }}
+        />
+      </Box>
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "space-between",
+          mt: 1.5,
+          pt: 1.5,
+          borderTop: "1px solid #1f1f2e",
+        }}
+      >
+        <Skeleton
+          variant="text"
+          width={100}
+          height={16}
+          sx={{ bgcolor: "#1f1f2e" }}
+        />
+        <Skeleton
+          variant="text"
+          width={80}
+          height={16}
+          sx={{ bgcolor: "#1f1f2e" }}
+        />
+      </Box>
+    </Box>
+  );
+}
 
 export default function TournamentsPage() {
   const navigate = useNavigate();
@@ -90,11 +181,15 @@ export default function TournamentsPage() {
           </Button>
         </Box>
 
-        {/* Loading */}
+        {/* Skeleton loading */}
         {loading && (
-          <Box sx={{ display: "flex", justifyContent: "center", py: 10 }}>
-            <CircularProgress sx={{ color: "#00ffe0" }} />
-          </Box>
+          <Grid container spacing={1.5}>
+            {[...Array(6)].map((_, i) => (
+              <Grid item xs={12} md={4} key={i}>
+                <TournamentCardSkeleton />
+              </Grid>
+            ))}
+          </Grid>
         )}
 
         {/* Error */}
@@ -145,7 +240,6 @@ export default function TournamentsPage() {
             {tournaments.map((t) => (
               <Grid item xs={12} md={4} key={t.id}>
                 <Box
-                  onClick={() => navigate(`/tournaments/${t.id}`)}
                   sx={{
                     background: "#13131c",
                     border: "1px solid #1f1f2e",
@@ -160,6 +254,7 @@ export default function TournamentsPage() {
                       borderColor: STATUS_COLOR[t.status] ?? "#555570",
                     },
                   }}
+                  onClick={() => navigate(`/tournaments/${t.id}`)}
                 >
                   <Typography
                     sx={{
@@ -247,6 +342,7 @@ export default function TournamentsPage() {
                     sx={{
                       display: "flex",
                       justifyContent: "space-between",
+                      alignItems: "center",
                       mt: 1.5,
                       pt: 1.5,
                       borderTop: "1px solid #1f1f2e",
@@ -255,9 +351,33 @@ export default function TournamentsPage() {
                     <Typography sx={{ fontSize: 11, color: "#555570" }}>
                       {t.currentParticipants} / {t.maxParticipants} players
                     </Typography>
-                    <Typography sx={{ fontSize: 11, color: "#555570" }}>
-                      by {t.organizerUsername}
-                    </Typography>
+                    {t.status === "IN_PROGRESS" || t.status === "COMPLETED" ? (
+                      <Button
+                        size="small"
+                        variant="outlined"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          navigate(`/tournaments/${t.id}/bracket`);
+                        }}
+                        sx={{
+                          fontSize: 11,
+                          px: 1.5,
+                          py: 0.4,
+                          borderColor: STATUS_COLOR[t.status],
+                          color: STATUS_COLOR[t.status],
+                          "&:hover": {
+                            background: `${STATUS_COLOR[t.status]}15`,
+                            borderColor: STATUS_COLOR[t.status],
+                          },
+                        }}
+                      >
+                        View Bracket →
+                      </Button>
+                    ) : (
+                      <Typography sx={{ fontSize: 11, color: "#555570" }}>
+                        by {t.organizerUsername}
+                      </Typography>
+                    )}
                   </Box>
                 </Box>
               </Grid>

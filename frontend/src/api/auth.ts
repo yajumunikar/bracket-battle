@@ -4,6 +4,7 @@ const API = axios.create({
   baseURL: import.meta.env.VITE_API_URL ?? "http://localhost:8080/api/v1",
 });
 
+// Request interceptor — attach token
 API.interceptors.request.use((config) => {
   const stored = localStorage.getItem("bb_user");
   if (stored) {
@@ -12,6 +13,24 @@ API.interceptors.request.use((config) => {
   }
   return config;
 });
+
+// Response interceptor — handle expired/invalid token
+API.interceptors.response.use(
+  (response) => response,
+  (error: AxiosError) => {
+    const status = error.response?.status;
+    const isAuthEndpoint =
+      error.config?.url?.includes("/auth/login") ||
+      error.config?.url?.includes("/auth/register");
+
+    if ((status === 401 || status === 403) && !isAuthEndpoint) {
+      localStorage.removeItem("bb_user");
+      window.location.href = "/login?reason=session_expired";
+    }
+
+    return Promise.reject(error);
+  }
+);
 
 export interface AuthResponse {
   success: boolean;
