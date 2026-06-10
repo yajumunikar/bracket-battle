@@ -77,6 +77,9 @@ public class Tournament {
     @Column(name = "banner_url", length = 500)
     private String bannerUrl;
 
+    @Column(name = "stream_url", length = 500)
+    private String streamUrl;
+
     @Column(columnDefinition = "TEXT")
     private String rules;
 

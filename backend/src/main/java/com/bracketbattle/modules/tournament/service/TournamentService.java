@@ -128,6 +128,15 @@ public class TournamentService {
         tournamentRepository.save(tournament);
     }
 
+    @Transactional
+    public TournamentDto updateStreamUrl(Long tournamentId, String streamUrl, Long organizerId) {
+        Tournament tournament = getTournamentByIdOrThrow(tournamentId);
+        validateOrganizer(tournament, organizerId);
+
+        tournament.setStreamUrl(streamUrl);
+        return TournamentDto.from(tournamentRepository.save(tournament));
+    }
+
     private Tournament getTournamentByIdOrThrow(Long id) {
         return tournamentRepository.findByIdAndDeletedAtIsNull(id)
                 .orElseThrow(() -> AppException.notFound(
@@ -156,4 +165,5 @@ public class TournamentService {
         }
         return slug;
     }
+
 }

@@ -19,6 +19,7 @@ export interface Tournament {
   endDate: string;
   organizerUsername: string;
   bannerUrl: string | null;
+  streamUrl: string | null;
 }
 
 export interface TournamentsResponse {
@@ -49,3 +50,8 @@ export const checkRegistration = (tournamentId: number) =>
 
 export const unregisterFromTournament = (tournamentId: number) =>
   API.delete(`/tournaments/${tournamentId}/registrations`);
+
+export const updateStreamUrl = (
+  tournamentId: number,
+  streamUrl: string | null
+) => API.put(`/tournaments/${tournamentId}/stream`, { streamUrl });

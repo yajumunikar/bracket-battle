@@ -24,6 +24,7 @@ public class TournamentDto {
     private BigDecimal prizePool;
     private String prizeDescription;
     private String bannerUrl;
+    private String streamUrl;
     private String rules;
     private Instant registrationClosesAt;
     private Instant startsAt;
@@ -55,6 +56,7 @@ public class TournamentDto {
                 .prizePool(t.getPrizePool())
                 .prizeDescription(t.getPrizeDescription())
                 .bannerUrl(t.getBannerUrl())
+                .streamUrl(t.getStreamUrl())
                 .rules(t.getRules())
                 .registrationClosesAt(t.getRegistrationClosesAt())
                 .startsAt(t.getStartsAt())

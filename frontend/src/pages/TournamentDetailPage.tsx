@@ -8,6 +8,11 @@ import {
   CircularProgress,
   Alert,
   Grid,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
 } from "@mui/material";
 import Navbar from "../components/Navbar";
 import {
@@ -15,6 +20,7 @@ import {
   registerForTournament,
   checkRegistration,
   unregisterFromTournament,
+  updateStreamUrl,
 } from "../api/tournaments";
 import type { Tournament } from "../api/tournaments";
 import { useAuth } from "../context/AuthContext";
@@ -54,6 +60,12 @@ export default function TournamentDetailPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [regLoading, setRegLoading] = useState(false);
   const [regMessage, setRegMessage] = useState("");
+  const [streamDialogOpen, setStreamDialogOpen] = useState(false);
+  const [streamInput, setStreamInput] = useState("");
+  const [streamLoading, setStreamLoading] = useState(false);
+
+  const isOrganizer =
+    user && tournament && user.username === tournament.organizerUsername;
 
   useEffect(() => {
     if (!id) return;
@@ -113,6 +125,25 @@ export default function TournamentDetailPage() {
     }
   };
 
+  const handleOpenStreamDialog = () => {
+    setStreamInput(tournament?.streamUrl ?? "");
+    setStreamDialogOpen(true);
+  };
+
+  const handleSaveStreamUrl = async () => {
+    if (!id) return;
+    setStreamLoading(true);
+    try {
+      const res = await updateStreamUrl(Number(id), streamInput.trim() || null);
+      setTournament(res.data.data);
+      setStreamDialogOpen(false);
+    } catch (e: any) {
+      alert(e.response?.data?.message ?? "Failed to update stream URL.");
+    } finally {
+      setStreamLoading(false);
+    }
+  };
+
   const slotsLeft = tournament
     ? tournament.maxParticipants - tournament.currentParticipants
     : 0;
@@ -165,33 +196,77 @@ export default function TournamentDetailPage() {
               }10 0%, transparent 100%)`,
             }}
           >
-            <Button
-              onClick={() => navigate("/tournaments")}
+            {/* Nav buttons row */}
+            <Box
               sx={{
-                color: "#555570",
-                fontSize: 13,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
                 mb: 3,
-                pl: 0,
-                "&:hover": { color: "#e8e8f0" },
+                flexWrap: "wrap",
               }}
             >
-              ← All Tournaments
-            </Button>
+              <Button
+                onClick={() => navigate("/tournaments")}
+                sx={{
+                  color: "#555570",
+                  fontSize: 13,
+                  pl: 0,
+                  "&:hover": { color: "#e8e8f0" },
+                }}
+              >
+                ← All Tournaments
+              </Button>
 
-            <Button
-              onClick={() => navigate(`/tournaments/${id}/bracket`)}
-              variant="outlined"
-              sx={{
-                borderColor: "#00ffe0",
-                color: "#00ffe0",
-                fontSize: 12,
-                mb: 3,
-                ml: 1,
-                "&:hover": { background: "#00ffe015" },
-              }}
-            >
-              View Bracket
-            </Button>
+              <Button
+                onClick={() => navigate(`/tournaments/${id}/bracket`)}
+                variant="outlined"
+                sx={{
+                  borderColor: "#00ffe0",
+                  color: "#00ffe0",
+                  fontSize: 12,
+                  "&:hover": { background: "#00ffe015" },
+                }}
+              >
+                View Bracket
+              </Button>
+
+              {/* Watch Live button — visible to everyone when stream exists */}
+              {tournament.streamUrl && (
+                <Button
+                  variant="contained"
+                  href={tournament.streamUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    fontSize: 12,
+                    background: "#7b5ef8",
+                    color: "#fff",
+                    "&:hover": { background: "#6a4de0" },
+                  }}
+                >
+                  ▶ Watch Live
+                </Button>
+              )}
+
+              {/* Set Stream Link — only for organizer */}
+              {isOrganizer && (
+                <Button
+                  onClick={handleOpenStreamDialog}
+                  sx={{
+                    fontSize: 12,
+                    color: "#555570",
+                    border: "1px solid #1f1f2e",
+                    "&:hover": { color: "#e8e8f0", borderColor: "#555570" },
+                  }}
+                >
+                  {tournament.streamUrl
+                    ? "✎ Edit Stream Link"
+                    : "+ Set Stream Link"}
+                </Button>
+              )}
+            </Box>
+
             <Box
               sx={{
                 display: "flex",
@@ -682,6 +757,80 @@ export default function TournamentDetailPage() {
           </Box>
         </>
       )}
+
+      {/* Set Stream Link Dialog */}
+      <Dialog
+        open={streamDialogOpen}
+        onClose={() => setStreamDialogOpen(false)}
+        slotProps={{
+          paper: {
+            sx: {
+              background: "#13131c",
+              border: "1px solid #1f1f2e",
+              minWidth: 380,
+            },
+          },
+        }}
+      >
+        <DialogTitle
+          sx={{
+            fontFamily: "'Barlow Condensed', sans-serif",
+            fontSize: 22,
+            fontWeight: 900,
+            color: "#fff",
+            borderBottom: "1px solid #1f1f2e",
+          }}
+        >
+          Set Stream Link
+        </DialogTitle>
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography sx={{ fontSize: 13, color: "#555570", mb: 2 }}>
+            Paste your Twitch or YouTube stream URL. Spectators will see a Watch
+            Live button.
+          </Typography>
+          <TextField
+            fullWidth
+            label="Stream URL"
+            placeholder="https://twitch.tv/yourchannel"
+            value={streamInput}
+            onChange={(e) => setStreamInput(e.target.value)}
+            sx={{
+              "& .MuiOutlinedInput-root": {
+                background: "#0d0d10",
+                "& fieldset": { borderColor: "#1f1f2e" },
+                "&.Mui-focused fieldset": { borderColor: "#00ffe0" },
+              },
+              "& .MuiInputLabel-root": { color: "#555570" },
+              "& .MuiInputLabel-root.Mui-focused": { color: "#00ffe0" },
+              "& .MuiInputBase-input": { color: "#e8e8f0" },
+            }}
+          />
+          {tournament?.streamUrl && (
+            <Button
+              onClick={() => setStreamInput("")}
+              sx={{ mt: 1, fontSize: 12, color: "#ff4444", pl: 0 }}
+            >
+              Remove stream link
+            </Button>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ borderTop: "1px solid #1f1f2e", p: 2, gap: 1 }}>
+          <Button
+            onClick={() => setStreamDialogOpen(false)}
+            sx={{ color: "#555570" }}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant="contained"
+            color="primary"
+            disabled={streamLoading}
+            onClick={handleSaveStreamUrl}
+          >
+            {streamLoading ? "Saving..." : "Save"}
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }

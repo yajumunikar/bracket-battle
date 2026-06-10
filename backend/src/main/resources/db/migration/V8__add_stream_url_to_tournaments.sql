@@ -1,0 +1,1 @@
+ALTER TABLE tournaments ADD COLUMN stream_url VARCHAR(500);

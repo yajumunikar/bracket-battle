@@ -108,4 +108,16 @@ public class TournamentController {
         return ResponseEntity.ok(
             ApiResponse.success(null, "Tournament deleted"));
     }
+
+    @PutMapping("/{id}/stream")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<ApiResponse<TournamentDto>> updateStreamUrl(
+            @PathVariable Long id,
+            @RequestBody java.util.Map<String, String> body,
+            @AuthenticationPrincipal Long userId) {
+
+        String streamUrl = body.get("streamUrl");
+        TournamentDto tournament = tournamentService.updateStreamUrl(id, streamUrl, userId);
+        return ResponseEntity.ok(ApiResponse.success(tournament, "Stream URL updated"));
+    }
 }
