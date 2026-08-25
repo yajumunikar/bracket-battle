@@ -1,1 +1,0 @@
-ALTER TABLE tournaments ADD COLUMN IF NOT EXISTS prize_pool DECIMAL(10,2);
