@@ -12,6 +12,8 @@ import ProfilePage from "./pages/ProfilePage";
 import ArenaIntelPage from "./pages/ArenaIntelPage";
 import MatchPredictionPage from "./pages/MatchPredictionPage";
 import ChatBot from "./components/ChatBot";
+import ResumeAnalyzerPage from "./pages/ResumeAnalyzerPage";
+import PortalPage from "./pages/PortalPage";
 
 function App() {
   return (
@@ -30,6 +32,8 @@ function App() {
         <Route path="/profile/:username" element={<ProfilePage />} />
         <Route path="/intel" element={<ArenaIntelPage />} />
         <Route path="/intel/:id" element={<MatchPredictionPage />} />
+        <Route path="/resume-analyzer" element={<ResumeAnalyzerPage />} />
+        <Route path="/portal" element={<PortalPage />} />
       </Routes>
       <ChatBot />
     </>

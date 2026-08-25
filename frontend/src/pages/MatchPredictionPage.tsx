@@ -7,10 +7,29 @@ import {
   Button,
   CircularProgress,
   Alert,
+  Chip,
 } from "@mui/material";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
 import { getIntelPrediction } from "../api/intel";
+
+interface CommunitySentiment {
+  communityExpectation: string;
+  team1FanSentiment: string;
+  team2FanSentiment: string;
+  commonlyDiscussed: string[];
+  underdogFactor: string;
+  dataSource: string;
+}
+
+interface PlayerShotPrediction {
+  name: string;
+  team: string;
+  position: string;
+  shotsMin: number;
+  shotsMax: number;
+  keyPlayer: boolean;
+}
 
 interface Prediction {
   predictedWinner: string;
@@ -39,6 +58,8 @@ interface Prediction {
     percent: number;
     type: string;
   }[];
+  playerShotsOnTarget: PlayerShotPrediction[];
+  communitySentiment: CommunitySentiment;
   suggestedCombo: string[];
   comboProbabilityPercent: number;
   matchSummary: string;
@@ -73,6 +94,24 @@ const FORM_COLOR: Record<
   W: { bg: "#00ffe015", color: "#00ffe0", border: "#00ffe030" },
   D: { bg: "#ff6b3515", color: "#ff6b35", border: "#ff6b3530" },
   L: { bg: "#ff444415", color: "#ff4444", border: "#ff444430" },
+};
+
+// Converts 2-letter country codes (e.g. "MX", "ZA") to flag emoji.
+// If the value is already an emoji (e.g. from the original Mexico/South Africa seed data),
+// it's returned unchanged. This handles both data formats safely.
+const toFlagEmoji = (flag: string): string => {
+  if (!flag) return flag;
+  // Already an emoji flag (longer than 4 chars once you account for surrogate pairs) — return as-is
+  if (flag.length > 4) return flag;
+  // 2-letter country code — convert to emoji
+  if (flag.length === 2) {
+    return flag
+      .toUpperCase()
+      .split("")
+      .map((c) => String.fromCodePoint(c.charCodeAt(0) + 127397))
+      .join("");
+  }
+  return flag;
 };
 
 export default function MatchPredictionPage() {
@@ -300,7 +339,7 @@ export default function MatchPredictionPage() {
               >
                 <Box sx={{ textAlign: "center", flex: 1 }}>
                   <Typography sx={{ fontSize: 48, lineHeight: 1, mb: 1 }}>
-                    {match.team1Flag}
+                    {toFlagEmoji(match.team1Flag)}
                   </Typography>
                   <Typography
                     sx={{
@@ -326,7 +365,7 @@ export default function MatchPredictionPage() {
                 </Box>
                 <Box sx={{ textAlign: "center", flex: 1 }}>
                   <Typography sx={{ fontSize: 48, lineHeight: 1, mb: 1 }}>
-                    {match.team2Flag}
+                    {toFlagEmoji(match.team2Flag)}
                   </Typography>
                   <Typography
                     sx={{
@@ -447,21 +486,21 @@ export default function MatchPredictionPage() {
                     >
                       <Box
                         sx={{
-                          flex: prediction.winProbabilities.team1,
+                          flex: prediction.winProbabilities?.team1 ?? 0,
                           height: 8,
                           background: "#00ffe0",
                         }}
                       />
                       <Box
                         sx={{
-                          flex: prediction.winProbabilities.draw,
+                          flex: prediction.winProbabilities?.draw ?? 0,
                           height: 8,
                           background: "#555570",
                         }}
                       />
                       <Box
                         sx={{
-                          flex: prediction.winProbabilities.team2,
+                          flex: prediction.winProbabilities?.team2 ?? 0,
                           height: 8,
                           background: "#7b5ef8",
                         }}
@@ -471,13 +510,22 @@ export default function MatchPredictionPage() {
                       sx={{ display: "flex", justifyContent: "space-between" }}
                     >
                       <Typography sx={{ fontSize: 11, color: "#00ffe0" }}>
-                        {match.team1} {prediction.winProbabilities.team1}%
+                        {match.team1}{" "}
+                        {prediction.winProbabilities?.team1 != null
+                          ? `${prediction.winProbabilities.team1}%`
+                          : "—"}
                       </Typography>
                       <Typography sx={{ fontSize: 11, color: "#555570" }}>
-                        Draw {prediction.winProbabilities.draw}%
+                        Draw{" "}
+                        {prediction.winProbabilities?.draw != null
+                          ? `${prediction.winProbabilities.draw}%`
+                          : "—"}
                       </Typography>
                       <Typography sx={{ fontSize: 11, color: "#7b5ef8" }}>
-                        {match.team2} {prediction.winProbabilities.team2}%
+                        {match.team2}{" "}
+                        {prediction.winProbabilities?.team2 != null
+                          ? `${prediction.winProbabilities.team2}%`
+                          : "—"}
                       </Typography>
                     </Box>
                   </Box>
@@ -640,6 +688,202 @@ export default function MatchPredictionPage() {
                       </Box>
                     ))}
                   </Box>
+
+                  {/* Community sentiment */}
+                  {prediction.communitySentiment && (
+                    <Box
+                      sx={{
+                        background: "#13131c",
+                        border: "1px solid #1f1f2e",
+                        borderLeft: "3px solid #ff6b35",
+                        borderRadius: "0 8px 8px 0",
+                        p: 2.5,
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          mb: 2,
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: 10,
+                            letterSpacing: 1,
+                            textTransform: "uppercase",
+                            color: "#ff6b35",
+                          }}
+                        >
+                          Community sentiment
+                        </Typography>
+                        <Chip
+                          label={
+                            prediction.communitySentiment.dataSource ??
+                            "Knowledge-based"
+                          }
+                          size="small"
+                          sx={{
+                            fontSize: 9,
+                            height: 20,
+                            background: "#ff6b3515",
+                            color: "#ff6b35",
+                            border: "1px solid #ff6b3530",
+                            letterSpacing: 0.5,
+                          }}
+                        />
+                      </Box>
+
+                      <Box sx={{ mb: 2 }}>
+                        <Typography
+                          sx={{
+                            fontSize: 9,
+                            letterSpacing: 1,
+                            textTransform: "uppercase",
+                            color: "#555570",
+                            mb: 0.5,
+                          }}
+                        >
+                          Community expectation
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 13,
+                            color: "#8888a8",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {prediction.communitySentiment.communityExpectation}
+                        </Typography>
+                      </Box>
+
+                      <Grid container spacing={1.5} sx={{ mb: 2 }}>
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                          <Box
+                            sx={{
+                              background: "#0d0d10",
+                              border: "1px solid #1f1f2e",
+                              borderRadius: 1.5,
+                              p: 1.5,
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: 9,
+                                letterSpacing: 1,
+                                textTransform: "uppercase",
+                                color: "#00ffe0",
+                                mb: 0.5,
+                              }}
+                            >
+                              {match.team1} fans
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: 12,
+                                color: "#8888a8",
+                                lineHeight: 1.6,
+                              }}
+                            >
+                              {prediction.communitySentiment.team1FanSentiment}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 6 }}>
+                          <Box
+                            sx={{
+                              background: "#0d0d10",
+                              border: "1px solid #1f1f2e",
+                              borderRadius: 1.5,
+                              p: 1.5,
+                            }}
+                          >
+                            <Typography
+                              sx={{
+                                fontSize: 9,
+                                letterSpacing: 1,
+                                textTransform: "uppercase",
+                                color: "#7b5ef8",
+                                mb: 0.5,
+                              }}
+                            >
+                              {match.team2} fans
+                            </Typography>
+                            <Typography
+                              sx={{
+                                fontSize: 12,
+                                color: "#8888a8",
+                                lineHeight: 1.6,
+                              }}
+                            >
+                              {prediction.communitySentiment.team2FanSentiment}
+                            </Typography>
+                          </Box>
+                        </Grid>
+                      </Grid>
+
+                      {prediction.communitySentiment.commonlyDiscussed?.length >
+                        0 && (
+                        <Box sx={{ mb: 2 }}>
+                          <Typography
+                            sx={{
+                              fontSize: 9,
+                              letterSpacing: 1,
+                              textTransform: "uppercase",
+                              color: "#555570",
+                              mb: 1,
+                            }}
+                          >
+                            Commonly discussed
+                          </Typography>
+                          <Box
+                            sx={{ display: "flex", gap: 1, flexWrap: "wrap" }}
+                          >
+                            {prediction.communitySentiment.commonlyDiscussed.map(
+                              (topic, i) => (
+                                <Chip
+                                  key={i}
+                                  label={topic}
+                                  size="small"
+                                  sx={{
+                                    fontSize: 11,
+                                    height: 24,
+                                    background: "#1f1f2e",
+                                    color: "#8888a8",
+                                    border: "1px solid #2a2a3e",
+                                  }}
+                                />
+                              )
+                            )}
+                          </Box>
+                        </Box>
+                      )}
+
+                      <Box>
+                        <Typography
+                          sx={{
+                            fontSize: 9,
+                            letterSpacing: 1,
+                            textTransform: "uppercase",
+                            color: "#555570",
+                            mb: 0.5,
+                          }}
+                        >
+                          Underdog factor
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: 13,
+                            color: "#8888a8",
+                            lineHeight: 1.6,
+                          }}
+                        >
+                          {prediction.communitySentiment.underdogFactor}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  )}
 
                   {/* Team analysis */}
                   <Box
@@ -850,6 +1094,192 @@ export default function MatchPredictionPage() {
                     </Grid>
                   </Box>
 
+                  {/* Player shots on target */}
+                  {prediction.playerShotsOnTarget?.length > 0 && (
+                    <Box
+                      sx={{
+                        background: "#13131c",
+                        border: "1px solid #1f1f2e",
+                        borderRadius: 2,
+                        p: 2.5,
+                      }}
+                    >
+                      <Typography
+                        sx={{
+                          fontSize: 10,
+                          letterSpacing: 1,
+                          textTransform: "uppercase",
+                          color: "#555570",
+                          mb: 2,
+                        }}
+                      >
+                        Player shots on target
+                      </Typography>
+
+                      <Typography
+                        sx={{
+                          fontSize: 9,
+                          letterSpacing: 1,
+                          textTransform: "uppercase",
+                          color: "#00ffe0",
+                          mb: 1,
+                        }}
+                      >
+                        {match.team1}
+                      </Typography>
+                      {prediction.playerShotsOnTarget
+                        .filter((p) => p.team === match.team1)
+                        .map((player, i, arr) => (
+                          <Box
+                            key={i}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1.5,
+                              py: 0.75,
+                              borderBottom:
+                                i < arr.length - 1
+                                  ? "1px solid #1f1f2e"
+                                  : "none",
+                            }}
+                          >
+                            <Box sx={{ flex: 1 }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.75,
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontSize: 12,
+                                    fontWeight: player.keyPlayer ? 600 : 400,
+                                    color: player.keyPlayer
+                                      ? "#e8e8f0"
+                                      : "#8888a8",
+                                  }}
+                                >
+                                  {player.name}
+                                </Typography>
+                                {player.keyPlayer && (
+                                  <Chip
+                                    label="KEY"
+                                    size="small"
+                                    sx={{
+                                      fontSize: 8,
+                                      height: 16,
+                                      background: "#00ffe015",
+                                      color: "#00ffe0",
+                                      border: "1px solid #00ffe030",
+                                      px: 0,
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                              <Typography
+                                sx={{ fontSize: 10, color: "#555570" }}
+                              >
+                                {player.position}
+                              </Typography>
+                            </Box>
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: "#00ffe0",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {player.shotsMin}–{player.shotsMax}
+                            </Typography>
+                          </Box>
+                        ))}
+
+                      <Box sx={{ my: 1.5, borderTop: "1px solid #1f1f2e" }} />
+
+                      <Typography
+                        sx={{
+                          fontSize: 9,
+                          letterSpacing: 1,
+                          textTransform: "uppercase",
+                          color: "#7b5ef8",
+                          mb: 1,
+                        }}
+                      >
+                        {match.team2}
+                      </Typography>
+                      {prediction.playerShotsOnTarget
+                        .filter((p) => p.team === match.team2)
+                        .map((player, i, arr) => (
+                          <Box
+                            key={i}
+                            sx={{
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 1.5,
+                              py: 0.75,
+                              borderBottom:
+                                i < arr.length - 1
+                                  ? "1px solid #1f1f2e"
+                                  : "none",
+                            }}
+                          >
+                            <Box sx={{ flex: 1 }}>
+                              <Box
+                                sx={{
+                                  display: "flex",
+                                  alignItems: "center",
+                                  gap: 0.75,
+                                }}
+                              >
+                                <Typography
+                                  sx={{
+                                    fontSize: 12,
+                                    fontWeight: player.keyPlayer ? 600 : 400,
+                                    color: player.keyPlayer
+                                      ? "#e8e8f0"
+                                      : "#8888a8",
+                                  }}
+                                >
+                                  {player.name}
+                                </Typography>
+                                {player.keyPlayer && (
+                                  <Chip
+                                    label="KEY"
+                                    size="small"
+                                    sx={{
+                                      fontSize: 8,
+                                      height: 16,
+                                      background: "#7b5ef815",
+                                      color: "#7b5ef8",
+                                      border: "1px solid #7b5ef830",
+                                      px: 0,
+                                    }}
+                                  />
+                                )}
+                              </Box>
+                              <Typography
+                                sx={{ fontSize: 10, color: "#555570" }}
+                              >
+                                {player.position}
+                              </Typography>
+                            </Box>
+                            <Typography
+                              sx={{
+                                fontSize: 13,
+                                fontWeight: 700,
+                                color: "#7b5ef8",
+                                flexShrink: 0,
+                              }}
+                            >
+                              {player.shotsMin}–{player.shotsMax}
+                            </Typography>
+                          </Box>
+                        ))}
+                    </Box>
+                  )}
+
                   {/* Likely goalscorers */}
                   <Box
                     sx={{
@@ -870,62 +1300,73 @@ export default function MatchPredictionPage() {
                     >
                       Likely goalscorers
                     </Typography>
-                    {prediction.likelyGoalscorers?.map((scorer, i) => (
-                      <Box
-                        key={i}
-                        sx={{
-                          display: "flex",
-                          alignItems: "center",
-                          gap: 1.5,
-                          py: 1,
-                          borderBottom:
-                            i < prediction.likelyGoalscorers.length - 1
-                              ? "1px solid #1f1f2e"
-                              : "none",
-                        }}
-                      >
+                    {prediction.likelyGoalscorers?.length > 0 ? (
+                      prediction.likelyGoalscorers.map((scorer, i) => (
                         <Box
+                          key={i}
                           sx={{
-                            width: 28,
-                            height: 28,
-                            borderRadius: "6px",
-                            background: "#7b5ef815",
-                            border: "1px solid #7b5ef830",
                             display: "flex",
                             alignItems: "center",
-                            justifyContent: "center",
-                            flexShrink: 0,
+                            gap: 1.5,
+                            py: 1,
+                            borderBottom:
+                              i < prediction.likelyGoalscorers.length - 1
+                                ? "1px solid #1f1f2e"
+                                : "none",
                           }}
                         >
-                          <Typography sx={{ fontSize: 12, color: "#7b5ef8" }}>
-                            ⚽
-                          </Typography>
-                        </Box>
-                        <Box sx={{ flex: 1 }}>
-                          <Typography
+                          <Box
                             sx={{
-                              fontSize: 12,
-                              fontWeight: 600,
-                              color: "#e8e8f0",
+                              width: 28,
+                              height: 28,
+                              borderRadius: "6px",
+                              background: "#7b5ef815",
+                              border: "1px solid #7b5ef830",
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "center",
+                              flexShrink: 0,
                             }}
                           >
-                            {scorer.name}
-                          </Typography>
-                          <Typography sx={{ fontSize: 10, color: "#555570" }}>
-                            {scorer.team} · {scorer.type}
+                            <Typography sx={{ fontSize: 12, color: "#7b5ef8" }}>
+                              ⚽
+                            </Typography>
+                          </Box>
+                          <Box sx={{ flex: 1 }}>
+                            <Typography
+                              sx={{
+                                fontSize: 12,
+                                fontWeight: 600,
+                                color:
+                                  scorer.name && scorer.name !== "Unknown"
+                                    ? "#e8e8f0"
+                                    : "#555570",
+                              }}
+                            >
+                              {scorer.name && scorer.name !== "Unknown"
+                                ? scorer.name
+                                : "Player TBC"}
+                            </Typography>
+                            <Typography sx={{ fontSize: 10, color: "#555570" }}>
+                              {scorer.team} · {scorer.type}
+                            </Typography>
+                          </Box>
+                          <Typography
+                            sx={{
+                              fontSize: 13,
+                              fontWeight: 700,
+                              color: "#00ffe0",
+                            }}
+                          >
+                            {scorer.percent}%
                           </Typography>
                         </Box>
-                        <Typography
-                          sx={{
-                            fontSize: 13,
-                            fontWeight: 700,
-                            color: "#00ffe0",
-                          }}
-                        >
-                          {scorer.percent}%
-                        </Typography>
-                      </Box>
-                    ))}
+                      ))
+                    ) : (
+                      <Typography sx={{ fontSize: 12, color: "#555570" }}>
+                        No goalscorer data available
+                      </Typography>
+                    )}
                   </Box>
 
                   {/* Suggested combo */}

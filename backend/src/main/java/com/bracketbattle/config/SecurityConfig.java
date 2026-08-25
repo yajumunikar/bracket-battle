@@ -43,6 +43,7 @@ public class SecurityConfig {
                                 "/api/v1/tournaments/*/bracket",
                                 "/api/v1/users/*",
                                 "/api/v1/ai/**", 
+                                "/api/v1/resume/**",
                                 "/actuator/health",
                                 "/actuator/info"
                         ).permitAll()

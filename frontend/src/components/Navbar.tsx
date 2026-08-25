@@ -61,22 +61,22 @@ export default function Navbar() {
             Games
           </Button>
 
-          {/* Arena Intel — visible to all, locked page for non-admins */}
+          {/* Portal — replaces Arena Intel */}
           <Button
-            onClick={() => navigate("/intel")}
+            onClick={() => navigate("/portal")}
             sx={{
               fontSize: 13,
-              color: isAdmin ? "#ff6b35" : "#555570",
-              border: isAdmin ? "1px solid #ff6b3530" : "none",
+              color: "#7c6aff",
+              border: "1px solid rgba(124,106,255,0.25)",
               borderRadius: "6px",
-              px: isAdmin ? 1.5 : 1,
+              px: 1.5,
               "&:hover": {
-                color: isAdmin ? "#ff8c55" : "#8888a8",
-                background: isAdmin ? "#ff6b3510" : "transparent",
+                color: "#9b8dff",
+                background: "rgba(124,106,255,0.08)",
               },
             }}
           >
-            {isAdmin ? "⚡ Arena Intel" : "Arena Intel"}
+            ✦ Portal
           </Button>
 
           {user ? (

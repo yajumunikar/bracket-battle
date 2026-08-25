@@ -49,6 +49,11 @@ aws:
 frontend:
   url: http://localhost:5173
 
+groq:
+  api-key: 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
+  api-url: https://api.groq.com/openai/v1/chat/completions
+  model: openai/gpt-oss-120b
+
 management:
   endpoints:
     web:
