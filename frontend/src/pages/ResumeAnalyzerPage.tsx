@@ -15,6 +15,7 @@ import { analyzeResume } from "../api/resume";
 import { searchJobs } from "../api/jobs";
 import type { ResumeAnalysisResponse } from "../api/resume";
 import type { JobSearchResponse, JobListing } from "../api/jobs";
+import Footer from "../components/Footer";
 
 // ── Color helpers ──────────────────────────────────────────────────────────────
 const getScoreColor = (score: number) => {
@@ -1458,6 +1459,7 @@ export default function ResumeAnalyzerPage() {
           )}
         </Box>
       )}
+      <Footer />
     </Box>
   );
 }

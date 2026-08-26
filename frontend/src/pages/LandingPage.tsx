@@ -2,6 +2,7 @@ import { Box, Button, Typography, Grid, Chip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import GameCarousel from "../components/GameCarousel";
+import Footer from "../components/Footer";
 
 const TOURNAMENTS = [
   {
@@ -362,6 +363,7 @@ export default function LandingPage() {
           Create Account — It's Free
         </Button>
       </Box>
+      <Footer />
     </Box>
   );
 }

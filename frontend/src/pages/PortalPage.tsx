@@ -2,6 +2,7 @@ import { Box, Typography, Chip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
+import Footer from "../components/Footer";
 
 const TOOLS = [
   {
@@ -272,6 +273,7 @@ export default function PortalPage() {
           })}
         </Box>
       </Box>
+      <Footer />
     </Box>
   );
 }
