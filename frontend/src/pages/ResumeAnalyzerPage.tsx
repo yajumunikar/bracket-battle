@@ -11,13 +11,13 @@ import {
   InputAdornment,
 } from "@mui/material";
 import Navbar from "../components/Navbar";
+import Footer from "../components/Footer";
 import { analyzeResume } from "../api/resume";
 import { searchJobs } from "../api/jobs";
+import { generateCoverLetter } from "../api/coverLetter";
 import type { ResumeAnalysisResponse } from "../api/resume";
 import type { JobSearchResponse, JobListing } from "../api/jobs";
-import Footer from "../components/Footer";
 
-// ── Color helpers ──────────────────────────────────────────────────────────────
 const getScoreColor = (score: number) => {
   if (score >= 75) return "#22c97a";
   if (score >= 50) return "#f5c542";
@@ -25,8 +25,7 @@ const getScoreColor = (score: number) => {
 };
 
 const getGradeColor = (grade: string) => {
-  if (grade.startsWith("A")) return "#22c97a";
-  if (grade.startsWith("B")) return "#22c97a";
+  if (grade.startsWith("A") || grade.startsWith("B")) return "#22c97a";
   if (grade.startsWith("C")) return "#f5c542";
   return "#ff5e6c";
 };
@@ -42,7 +41,6 @@ const formatDate = (dateStr: string | null) => {
   return `${Math.floor(diff / 30)}mo ago`;
 };
 
-// ── Sub-components ─────────────────────────────────────────────────────────────
 const ScoreBar = ({ label, value }: { label: string; value: number }) => (
   <Box sx={{ mb: 2 }}>
     <Box sx={{ display: "flex", justifyContent: "space-between", mb: 0.5 }}>
@@ -127,7 +125,6 @@ const CardLabel = ({
   </Typography>
 );
 
-// ── Job Card ──────────────────────────────────────────────────────────────────
 const JobCard = ({ job }: { job: JobListing }) => (
   <Box
     sx={{
@@ -137,12 +134,11 @@ const JobCard = ({ job }: { job: JobListing }) => (
       borderRadius: "12px",
       p: 2.5,
       mb: 2,
+      "&:hover": { borderColor: "#7c6aff" },
       transition: "border-color 0.2s",
-      "&:hover": { borderColor: "#7c6aff", borderLeftColor: "#7c6aff" },
     }}
   >
     <Box sx={{ display: "flex", gap: 2, alignItems: "flex-start" }}>
-      {/* Logo */}
       <Box
         sx={{
           width: 44,
@@ -170,8 +166,6 @@ const JobCard = ({ job }: { job: JobListing }) => (
           <Typography sx={{ fontSize: "1.2rem" }}>🏢</Typography>
         )}
       </Box>
-
-      {/* Content */}
       <Box sx={{ flex: 1, minWidth: 0 }}>
         <Box
           sx={{
@@ -207,7 +201,6 @@ const JobCard = ({ job }: { job: JobListing }) => (
             />
           )}
         </Box>
-
         <Typography
           sx={{
             fontSize: "0.83rem",
@@ -218,7 +211,6 @@ const JobCard = ({ job }: { job: JobListing }) => (
         >
           {job.company}
         </Typography>
-
         <Box sx={{ display: "flex", gap: 1, flexWrap: "wrap", mb: 1 }}>
           <Chip
             label={`📍 ${job.location}`}
@@ -267,7 +259,6 @@ const JobCard = ({ job }: { job: JobListing }) => (
             />
           )}
         </Box>
-
         {job.description && (
           <Typography
             sx={{
@@ -280,7 +271,6 @@ const JobCard = ({ job }: { job: JobListing }) => (
             {job.description}
           </Typography>
         )}
-
         <Button
           href={job.applyLink}
           target="_blank"
@@ -305,9 +295,37 @@ const JobCard = ({ job }: { job: JobListing }) => (
   </Box>
 );
 
-// ── Main Page ──────────────────────────────────────────────────────────────────
+const TabBtn = ({ id, label, icon, activeTab, setActiveTab }: any) => (
+  <Box
+    onClick={() => setActiveTab(id)}
+    sx={{
+      display: "flex",
+      alignItems: "center",
+      gap: 1,
+      px: 3,
+      py: 1.5,
+      cursor: "pointer",
+      borderRadius: "10px",
+      bgcolor: activeTab === id ? "rgba(124,106,255,0.15)" : "transparent",
+      border:
+        activeTab === id
+          ? "1px solid rgba(124,106,255,0.3)"
+          : "1px solid transparent",
+      color: activeTab === id ? "#7c6aff" : "#6b6b80",
+      fontWeight: activeTab === id ? 700 : 400,
+      fontSize: "0.88rem",
+      transition: "all 0.2s",
+      "&:hover": { color: "#7c6aff", bgcolor: "rgba(124,106,255,0.08)" },
+    }}
+  >
+    <span>{icon}</span> {label}
+  </Box>
+);
+
 export default function ResumeAnalyzerPage() {
-  const [activeTab, setActiveTab] = useState<"analyzer" | "jobs">("analyzer");
+  const [activeTab, setActiveTab] = useState<
+    "analyzer" | "jobs" | "coverletter"
+  >("analyzer");
 
   // Analyzer state
   const [file, setFile] = useState<File | null>(null);
@@ -316,6 +334,9 @@ export default function ResumeAnalyzerPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<ResumeAnalysisResponse | null>(null);
+  const [extractedResumeText, setExtractedResumeText] = useState<string | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Job search state
@@ -327,7 +348,15 @@ export default function ResumeAnalyzerPage() {
   const [jobPage, setJobPage] = useState(1);
   const [resumeQuery, setResumeQuery] = useState<string | null>(null);
 
-  // ── File handling ──────────────────────────────────────────────────────────
+  // Cover letter state
+  const [clJobDesc, setClJobDesc] = useState("");
+  const [clFile, setClFile] = useState<File | null>(null);
+  const [clLoading, setClLoading] = useState(false);
+  const [clError, setClError] = useState<string | null>(null);
+  const [coverLetter, setCoverLetter] = useState<string | null>(null);
+  const [copied, setCopied] = useState(false);
+  const clFileRef = useRef<HTMLInputElement>(null);
+
   const handleFile = (f: File) => {
     if (f.type !== "application/pdf") {
       setError("Only PDF files are supported.");
@@ -349,7 +378,6 @@ export default function ResumeAnalyzerPage() {
     if (f) handleFile(f);
   }, []);
 
-  // ── Analyze ────────────────────────────────────────────────────────────────
   const handleAnalyze = async () => {
     if (!file) return;
     setLoading(true);
@@ -357,15 +385,15 @@ export default function ResumeAnalyzerPage() {
     try {
       const data = await analyzeResume(file, jobDescription);
       setResult(data);
-      // Extract role for job search suggestion
-      const firstStrength = data.strengths?.[0] || "";
-      const queryGuess = extractRoleFromResume(firstStrength);
-      setResumeQuery(queryGuess);
-      setTimeout(() => {
-        document
-          .getElementById("results-section")
-          ?.scrollIntoView({ behavior: "smooth" });
-      }, 100);
+      setResumeQuery(extractRole(data.strengths?.[0] || ""));
+      setClFile(file);
+      setTimeout(
+        () =>
+          document
+            .getElementById("results-section")
+            ?.scrollIntoView({ behavior: "smooth" }),
+        100
+      );
     } catch (err: any) {
       setError(
         err?.response?.data?.error || "Analysis failed. Please try again."
@@ -375,14 +403,13 @@ export default function ResumeAnalyzerPage() {
     }
   };
 
-  const extractRoleFromResume = (strength: string): string => {
+  const extractRole = (strength: string) => {
     if (strength.toLowerCase().includes("java")) return "Senior Java Developer";
     if (strength.toLowerCase().includes("react")) return "Full Stack Developer";
     if (strength.toLowerCase().includes("python")) return "Python Developer";
     return "Software Engineer";
   };
 
-  // ── Job Search ─────────────────────────────────────────────────────────────
   const handleJobSearch = async (query?: string, page = 1) => {
     const q = query || jobQuery;
     if (!q.trim()) {
@@ -406,14 +433,61 @@ export default function ResumeAnalyzerPage() {
 
   const handleFindJobsFromResume = () => {
     if (!resumeQuery) {
-      setJobError("Analyze your resume first to use this feature.");
+      setJobError("Analyze your resume first.");
       return;
     }
     setJobQuery(resumeQuery);
     handleJobSearch(resumeQuery, 1);
   };
 
-  // ── Score Ring ─────────────────────────────────────────────────────────────
+  const handleGenerateCoverLetter = async () => {
+    if (!clJobDesc.trim()) {
+      setClError("Please paste a job description.");
+      return;
+    }
+    if (!clFile && !extractedResumeText) {
+      setClError(
+        "Please upload a resume or analyze one in the Resume Analyzer tab first."
+      );
+      return;
+    }
+    setClLoading(true);
+    setClError(null);
+    setCoverLetter(null);
+    try {
+      const letter = await generateCoverLetter(
+        clJobDesc,
+        extractedResumeText || undefined,
+        clFile || undefined
+      );
+      setCoverLetter(letter);
+    } catch (err: any) {
+      setClError(
+        err?.response?.data?.error || "Generation failed. Please try again."
+      );
+    } finally {
+      setClLoading(false);
+    }
+  };
+
+  const handleCopy = () => {
+    if (!coverLetter) return;
+    navigator.clipboard.writeText(coverLetter);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  const handleDownload = () => {
+    if (!coverLetter) return;
+    const blob = new Blob([coverLetter], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "cover_letter.txt";
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const ScoreRing = ({ score, grade }: { score: number; grade: string }) => {
     const color = getScoreColor(score);
     const gradeColor = getGradeColor(grade);
@@ -482,47 +556,19 @@ export default function ResumeAnalyzerPage() {
     );
   };
 
-  // ── Tab Button ─────────────────────────────────────────────────────────────
-  const TabBtn = ({
-    id,
-    label,
-    icon,
-  }: {
-    id: "analyzer" | "jobs";
-    label: string;
-    icon: string;
-  }) => (
+  return (
     <Box
-      onClick={() => setActiveTab(id)}
       sx={{
+        minHeight: "100vh",
+        bgcolor: "#0a0a0f",
+        color: "#e8e8f0",
         display: "flex",
-        alignItems: "center",
-        gap: 1,
-        px: 3,
-        py: 1.5,
-        cursor: "pointer",
-        borderRadius: "10px",
-        bgcolor: activeTab === id ? "rgba(124,106,255,0.15)" : "transparent",
-        border:
-          activeTab === id
-            ? "1px solid rgba(124,106,255,0.3)"
-            : "1px solid transparent",
-        color: activeTab === id ? "#7c6aff" : "#6b6b80",
-        fontWeight: activeTab === id ? 700 : 400,
-        fontSize: "0.88rem",
-        transition: "all 0.2s",
-        "&:hover": { color: "#7c6aff", bgcolor: "rgba(124,106,255,0.08)" },
+        flexDirection: "column",
       }}
     >
-      <span>{icon}</span> {label}
-    </Box>
-  );
-
-  return (
-    <Box sx={{ minHeight: "100vh", bgcolor: "#0a0a0f", color: "#e8e8f0" }}>
       <Navbar />
 
-      {/* ── HERO ── */}
+      {/* HERO */}
       <Box
         sx={{
           textAlign: "center",
@@ -583,23 +629,47 @@ export default function ResumeAnalyzerPage() {
             lineHeight: 1.7,
           }}
         >
-          Analyze your resume with AI or find relevant job opportunities — all
-          in one place.
+          Analyze your resume, find jobs, and generate tailored cover letters —
+          all in one place.
         </Typography>
 
-        {/* ── TABS ── */}
-        <Box sx={{ display: "flex", justifyContent: "center", gap: 1, mb: 4 }}>
-          <TabBtn id="analyzer" label="Resume Analyzer" icon="📄" />
-          <TabBtn id="jobs" label="Job Finder" icon="🔍" />
+        {/* TABS */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            gap: 1,
+            mb: 4,
+            flexWrap: "wrap",
+          }}
+        >
+          <TabBtn
+            id="analyzer"
+            label="Resume Analyzer"
+            icon="📄"
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <TabBtn
+            id="jobs"
+            label="Job Finder"
+            icon="🔍"
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
+          <TabBtn
+            id="coverletter"
+            label="Cover Letter"
+            icon="✉️"
+            activeTab={activeTab}
+            setActiveTab={setActiveTab}
+          />
         </Box>
       </Box>
 
-      {/* ══════════════════════════════════════════════════════════════════
-          TAB 1 — RESUME ANALYZER
-      ══════════════════════════════════════════════════════════════════ */}
+      {/* ══ TAB 1 — RESUME ANALYZER ══ */}
       {activeTab === "analyzer" && (
-        <Box sx={{ px: 3, pb: 6 }}>
-          {/* Upload Zone */}
+        <Box sx={{ px: 3, pb: 6, flex: 1 }}>
           <Box
             onDrop={onDrop}
             onDragOver={(e) => {
@@ -693,7 +763,6 @@ export default function ResumeAnalyzerPage() {
             )}
           </Box>
 
-          {/* Job Description */}
           <Box sx={{ maxWidth: 640, mx: "auto", mb: 3 }}>
             <Box
               sx={{ display: "flex", justifyContent: "space-between", mb: 1 }}
@@ -773,7 +842,6 @@ export default function ResumeAnalyzerPage() {
               fontSize: "1rem",
               borderRadius: "12px",
               textTransform: "none",
-              letterSpacing: "-0.3px",
               "&:hover": { bgcolor: "#6857e0", transform: "translateY(-1px)" },
               "&:disabled": { bgcolor: "#23232f", color: "#4a4a5a" },
               transition: "all 0.2s",
@@ -796,7 +864,6 @@ export default function ResumeAnalyzerPage() {
             )}
           </Button>
 
-          {/* Results */}
           {result && (
             <Box id="results-section" sx={{ maxWidth: 900, mx: "auto", mt: 6 }}>
               <Box sx={{ borderTop: "1px solid #23232f", mb: 4 }} />
@@ -838,53 +905,104 @@ export default function ResumeAnalyzerPage() {
                 {result.summary}
               </Alert>
 
-              {/* Find Jobs CTA */}
+              {/* Quick actions */}
               <Box
                 sx={{
-                  mb: 3,
-                  p: 2.5,
-                  background: "rgba(34,201,122,0.05)",
-                  border: "1px solid rgba(34,201,122,0.15)",
-                  borderRadius: "12px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  flexWrap: "wrap",
+                  display: "grid",
+                  gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
                   gap: 2,
+                  mb: 3,
                 }}
               >
-                <Box>
-                  <Typography
-                    sx={{
-                      fontSize: "0.9rem",
-                      fontWeight: 700,
-                      color: "#22c97a",
-                      mb: 0.3,
-                    }}
-                  >
-                    Ready to apply? Find matching jobs →
-                  </Typography>
-                  <Typography sx={{ fontSize: "0.8rem", color: "#6b6b80" }}>
-                    Based on your resume, we'll search for {resumeQuery} roles
-                  </Typography>
-                </Box>
-                <Button
-                  onClick={() => {
-                    setActiveTab("jobs");
-                    handleFindJobsFromResume();
-                  }}
+                <Box
                   sx={{
-                    bgcolor: "#22c97a",
-                    color: "#0a0a0f",
-                    fontWeight: 700,
-                    textTransform: "none",
-                    borderRadius: "8px",
-                    px: 2.5,
-                    "&:hover": { bgcolor: "#1aad68" },
+                    p: 2.5,
+                    background: "rgba(34,201,122,0.05)",
+                    border: "1px solid rgba(34,201,122,0.15)",
+                    borderRadius: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
                   }}
                 >
-                  Find Jobs
-                </Button>
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: "0.9rem",
+                        fontWeight: 700,
+                        color: "#22c97a",
+                        mb: 0.3,
+                      }}
+                    >
+                      Find matching jobs →
+                    </Typography>
+                    <Typography sx={{ fontSize: "0.8rem", color: "#6b6b80" }}>
+                      Search for {resumeQuery} roles
+                    </Typography>
+                  </Box>
+                  <Button
+                    onClick={() => {
+                      setActiveTab("jobs");
+                      handleFindJobsFromResume();
+                    }}
+                    sx={{
+                      bgcolor: "#22c97a",
+                      color: "#0a0a0f",
+                      fontWeight: 700,
+                      textTransform: "none",
+                      borderRadius: "8px",
+                      px: 2.5,
+                      "&:hover": { bgcolor: "#1aad68" },
+                      flexShrink: 0,
+                    }}
+                  >
+                    Find Jobs
+                  </Button>
+                </Box>
+                <Box
+                  sx={{
+                    p: 2.5,
+                    background: "rgba(124,106,255,0.05)",
+                    border: "1px solid rgba(124,106,255,0.15)",
+                    borderRadius: "12px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    gap: 2,
+                  }}
+                >
+                  <Box>
+                    <Typography
+                      sx={{
+                        fontSize: "0.9rem",
+                        fontWeight: 700,
+                        color: "#7c6aff",
+                        mb: 0.3,
+                      }}
+                    >
+                      Generate cover letter →
+                    </Typography>
+                    <Typography sx={{ fontSize: "0.8rem", color: "#6b6b80" }}>
+                      Resume ready, just add the job
+                    </Typography>
+                  </Box>
+                  <Button
+                    onClick={() => setActiveTab("coverletter")}
+                    sx={{
+                      bgcolor: "#7c6aff",
+                      color: "#fff",
+                      fontWeight: 700,
+                      textTransform: "none",
+                      borderRadius: "8px",
+                      px: 2.5,
+                      "&:hover": { bgcolor: "#6857e0" },
+                      flexShrink: 0,
+                    }}
+                  >
+                    Write Letter
+                  </Button>
+                </Box>
               </Box>
 
               <Box
@@ -1197,6 +1315,7 @@ export default function ResumeAnalyzerPage() {
                     setResult(null);
                     setFile(null);
                     setJobDescription("");
+                    setExtractedResumeText(null);
                     window.scrollTo({ top: 0, behavior: "smooth" });
                   }}
                   sx={{
@@ -1214,12 +1333,9 @@ export default function ResumeAnalyzerPage() {
         </Box>
       )}
 
-      {/* ══════════════════════════════════════════════════════════════════
-          TAB 2 — JOB FINDER
-      ══════════════════════════════════════════════════════════════════ */}
+      {/* ══ TAB 2 — JOB FINDER ══ */}
       {activeTab === "jobs" && (
-        <Box sx={{ maxWidth: 860, mx: "auto", px: 3, pb: 10 }}>
-          {/* Search Box */}
+        <Box sx={{ maxWidth: 860, mx: "auto", px: 3, pb: 10, flex: 1 }}>
           <SectionCard sx={{ mb: 3 }}>
             <CardLabel color="#7c6aff">Search Jobs</CardLabel>
             <Box sx={{ display: "flex", gap: 2, flexWrap: "wrap", mb: 2 }}>
@@ -1297,9 +1413,7 @@ export default function ResumeAnalyzerPage() {
                 )}
               </Button>
               <Button
-                onClick={() => {
-                  setActiveTab("analyzer");
-                }}
+                onClick={() => setActiveTab("analyzer")}
                 variant="outlined"
                 sx={{
                   borderColor: "#23232f",
@@ -1398,12 +1512,9 @@ export default function ResumeAnalyzerPage() {
                   Page {jobPage}
                 </Typography>
               </Box>
-
               {jobResults.jobs.map((job) => (
                 <JobCard key={job.jobId} job={job} />
               ))}
-
-              {/* Pagination */}
               <Box
                 sx={{
                   display: "flex",
@@ -1459,6 +1570,281 @@ export default function ResumeAnalyzerPage() {
           )}
         </Box>
       )}
+
+      {/* ══ TAB 3 — COVER LETTER ══ */}
+      {activeTab === "coverletter" && (
+        <Box sx={{ maxWidth: 860, mx: "auto", px: 3, pb: 10, flex: 1 }}>
+          <SectionCard sx={{ mb: 3 }}>
+            <CardLabel color="#7c6aff">Cover Letter Generator</CardLabel>
+
+            {/* Resume source indicator */}
+            {result ? (
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 1.5,
+                  mb: 3,
+                  p: 2,
+                  bgcolor: "rgba(34,201,122,0.05)",
+                  border: "1px solid rgba(34,201,122,0.15)",
+                  borderRadius: "10px",
+                }}
+              >
+                <Typography sx={{ fontSize: "1rem" }}>✓</Typography>
+                <Box>
+                  <Typography
+                    sx={{
+                      fontSize: "0.83rem",
+                      fontWeight: 600,
+                      color: "#22c97a",
+                    }}
+                  >
+                    Resume ready from your analysis
+                  </Typography>
+                  <Typography sx={{ fontSize: "0.75rem", color: "#6b6b80" }}>
+                    Just paste the job description below and generate
+                  </Typography>
+                </Box>
+              </Box>
+            ) : (
+              <Box sx={{ mb: 3 }}>
+                <Typography
+                  sx={{
+                    fontSize: "0.78rem",
+                    fontWeight: 600,
+                    textTransform: "uppercase",
+                    letterSpacing: "0.08em",
+                    color: "#6b6b80",
+                    mb: 1,
+                  }}
+                >
+                  Upload Resume (PDF)
+                </Typography>
+                <Box
+                  onClick={() => clFileRef.current?.click()}
+                  sx={{
+                    border: `2px dashed ${clFile ? "#22c97a" : "#23232f"}`,
+                    borderRadius: "12px",
+                    p: 3,
+                    textAlign: "center",
+                    cursor: "pointer",
+                    bgcolor: clFile ? "rgba(34,201,122,0.04)" : "#111118",
+                    "&:hover": {
+                      borderColor: "#7c6aff",
+                      bgcolor: "rgba(124,106,255,0.05)",
+                    },
+                    transition: "all 0.2s",
+                  }}
+                >
+                  <input
+                    ref={clFileRef}
+                    type="file"
+                    accept="application/pdf"
+                    style={{ display: "none" }}
+                    onChange={(e) =>
+                      e.target.files?.[0] && setClFile(e.target.files[0])
+                    }
+                  />
+                  {clFile ? (
+                    <Typography sx={{ fontSize: "0.85rem", color: "#22c97a" }}>
+                      ✓ {clFile.name}
+                    </Typography>
+                  ) : (
+                    <Typography sx={{ fontSize: "0.85rem", color: "#6b6b80" }}>
+                      Click to upload PDF · or{" "}
+                      <Box
+                        component="span"
+                        sx={{ color: "#7c6aff", cursor: "pointer" }}
+                        onClick={() => setActiveTab("analyzer")}
+                      >
+                        analyze your resume first
+                      </Box>
+                    </Typography>
+                  )}
+                </Box>
+              </Box>
+            )}
+
+            <Typography
+              sx={{
+                fontSize: "0.78rem",
+                fontWeight: 600,
+                textTransform: "uppercase",
+                letterSpacing: "0.08em",
+                color: "#6b6b80",
+                mb: 1,
+              }}
+            >
+              Job Description{" "}
+              <Box component="span" sx={{ color: "#ff5e6c" }}>
+                *
+              </Box>
+            </Typography>
+            <textarea
+              value={clJobDesc}
+              onChange={(e) => setClJobDesc(e.target.value)}
+              placeholder="Paste the full job description here — the more detail, the better the letter..."
+              rows={6}
+              style={{
+                width: "100%",
+                background: "#111118",
+                border: "1px solid #23232f",
+                borderRadius: "12px",
+                color: "#e8e8f0",
+                fontFamily: "Inter, sans-serif",
+                fontSize: "0.88rem",
+                padding: "14px 16px",
+                resize: "vertical",
+                outline: "none",
+                boxSizing: "border-box",
+                marginBottom: "16px",
+              }}
+              onFocus={(e) => (e.target.style.borderColor = "#7c6aff")}
+              onBlur={(e) => (e.target.style.borderColor = "#23232f")}
+            />
+
+            {clError && (
+              <Alert
+                severity="error"
+                sx={{
+                  mb: 2,
+                  bgcolor: "rgba(255,94,108,0.1)",
+                  color: "#ff5e6c",
+                  border: "1px solid rgba(255,94,108,0.2)",
+                }}
+              >
+                {clError}
+              </Alert>
+            )}
+
+            <Button
+              onClick={handleGenerateCoverLetter}
+              disabled={clLoading || !clJobDesc.trim()}
+              sx={{
+                width: "100%",
+                py: 2,
+                bgcolor: "#7c6aff",
+                color: "#fff",
+                fontWeight: 700,
+                fontSize: "1rem",
+                borderRadius: "12px",
+                textTransform: "none",
+                "&:hover": { bgcolor: "#6857e0" },
+                "&:disabled": { bgcolor: "#23232f", color: "#4a4a5a" },
+              }}
+            >
+              {clLoading ? (
+                <Box
+                  sx={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    gap: 1.5,
+                  }}
+                >
+                  <CircularProgress size={18} sx={{ color: "#fff" }} />
+                  Writing your cover letter...
+                </Box>
+              ) : (
+                "✉️  Generate Cover Letter"
+              )}
+            </Button>
+          </SectionCard>
+
+          {/* Result */}
+          {coverLetter && (
+            <SectionCard>
+              <Box
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  mb: 2,
+                  flexWrap: "wrap",
+                  gap: 1,
+                }}
+              >
+                <CardLabel color="#22c97a">Your Cover Letter</CardLabel>
+                <Box sx={{ display: "flex", gap: 1 }}>
+                  <Button
+                    onClick={handleCopy}
+                    size="small"
+                    sx={{
+                      bgcolor: copied
+                        ? "rgba(34,201,122,0.15)"
+                        : "rgba(124,106,255,0.1)",
+                      color: copied ? "#22c97a" : "#7c6aff",
+                      border: `1px solid ${
+                        copied
+                          ? "rgba(34,201,122,0.2)"
+                          : "rgba(124,106,255,0.2)"
+                      }`,
+                      textTransform: "none",
+                      borderRadius: "8px",
+                      fontSize: "0.78rem",
+                      "&:hover": { bgcolor: "rgba(124,106,255,0.15)" },
+                    }}
+                  >
+                    {copied ? "✓ Copied!" : "Copy"}
+                  </Button>
+                  <Button
+                    onClick={handleDownload}
+                    size="small"
+                    sx={{
+                      bgcolor: "rgba(124,106,255,0.1)",
+                      color: "#7c6aff",
+                      border: "1px solid rgba(124,106,255,0.2)",
+                      textTransform: "none",
+                      borderRadius: "8px",
+                      fontSize: "0.78rem",
+                      "&:hover": { bgcolor: "rgba(124,106,255,0.15)" },
+                    }}
+                  >
+                    Download .txt
+                  </Button>
+                </Box>
+              </Box>
+              <Box
+                sx={{
+                  bgcolor: "#111118",
+                  border: "1px solid #23232f",
+                  borderRadius: "10px",
+                  p: 3,
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: "0.88rem",
+                    lineHeight: 1.85,
+                    color: "#e8e8f0",
+                    whiteSpace: "pre-wrap",
+                  }}
+                >
+                  {coverLetter}
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: "center", mt: 3 }}>
+                <Button
+                  onClick={() => {
+                    setCoverLetter(null);
+                    setClJobDesc("");
+                  }}
+                  sx={{
+                    color: "#7c6aff",
+                    textTransform: "none",
+                    fontWeight: 600,
+                    "&:hover": { bgcolor: "rgba(124,106,255,0.08)" },
+                  }}
+                >
+                  ← Generate another
+                </Button>
+              </Box>
+            </SectionCard>
+          )}
+        </Box>
+      )}
+
       <Footer />
     </Box>
   );

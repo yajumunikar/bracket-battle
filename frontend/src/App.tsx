@@ -14,10 +14,12 @@ import MatchPredictionPage from "./pages/MatchPredictionPage";
 import ChatBot from "./components/ChatBot";
 import ResumeAnalyzerPage from "./pages/ResumeAnalyzerPage";
 import PortalPage from "./pages/PortalPage";
+import ScrollToTop from "./components/ScrollToTop";
 
 function App() {
   return (
     <>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/login" element={<LoginPage />} />

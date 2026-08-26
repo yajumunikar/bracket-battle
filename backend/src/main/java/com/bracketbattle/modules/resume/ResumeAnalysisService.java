@@ -186,4 +186,8 @@ private String groqApiUrl;
             throw new RuntimeException("Failed to parse analysis results. Please try again.");
         }
     }
+
+    public String extractText(MultipartFile file) throws IOException {
+        return extractTextFromPdf(file);
+    }
 }
