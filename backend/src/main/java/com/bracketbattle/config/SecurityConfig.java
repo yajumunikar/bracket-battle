@@ -45,6 +45,7 @@ public class SecurityConfig {
                                 "/api/v1/ai/**", 
                                 "/api/v1/resume/**",
                                 "/actuator/health",
+                                "/api/v1/workout/**",
                                 "/actuator/info"
                         ).permitAll()
                         .anyRequest().authenticated()

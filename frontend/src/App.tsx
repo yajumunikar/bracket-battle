@@ -15,6 +15,7 @@ import ChatBot from "./components/ChatBot";
 import ResumeAnalyzerPage from "./pages/ResumeAnalyzerPage";
 import PortalPage from "./pages/PortalPage";
 import ScrollToTop from "./components/ScrollToTop";
+import WorkoutPlanPage from "./pages/WorkoutPlanPage";
 
 function App() {
   return (
@@ -36,6 +37,7 @@ function App() {
         <Route path="/intel/:id" element={<MatchPredictionPage />} />
         <Route path="/resume-analyzer" element={<ResumeAnalyzerPage />} />
         <Route path="/portal" element={<PortalPage />} />
+        <Route path="/workout" element={<WorkoutPlanPage />} />
       </Routes>
       <ChatBot />
     </>

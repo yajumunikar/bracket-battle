@@ -2,7 +2,6 @@ import { Box, Typography, Chip } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 import Navbar from "../components/Navbar";
 import { useAuth } from "../context/AuthContext";
-import Footer from "../components/Footer";
 
 const TOOLS = [
   {
@@ -27,10 +26,24 @@ const TOOLS = [
     accentBg: "rgba(124,106,255,0.08)",
     accentBorder: "rgba(124,106,255,0.2)",
     title: "AI Resume Analyzer",
-    desc: "Upload your resume and get an instant AI-powered breakdown — overall score, ATS compatibility check, keyword gap analysis, improvement suggestions, and bullet point rewrites.",
-    chips: ["PDF Upload", "ATS Check", "Keyword Analysis"],
+    desc: "Upload your resume for an AI-powered score and breakdown, find matching jobs across LinkedIn, Indeed, and Glassdoor, and generate tailored cover letters — all in one place.",
+    chips: ["Resume Score", "Job Finder", "Cover Letter"],
     cta: "Analyze My Resume →",
     path: "/resume-analyzer",
+    adminOnly: false,
+  },
+  {
+    icon: "💪",
+    label: "Free · No Login Needed",
+    labelColor: "#22c97a",
+    accentColor: "#22c97a",
+    accentBg: "rgba(34,201,122,0.08)",
+    accentBorder: "rgba(34,201,122,0.2)",
+    title: "Workout Plan Generator",
+    desc: "Tell us your goal, fitness level, available equipment, and schedule — get a complete personalized weekly workout plan built specifically for you in seconds.",
+    chips: ["Personalized Plan", "All Levels", "Any Equipment"],
+    cta: "Build My Plan →",
+    path: "/workout",
     adminOnly: false,
   },
 ];
@@ -122,7 +135,7 @@ export default function PortalPage() {
         <Box
           sx={{
             display: "grid",
-            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr" },
+            gridTemplateColumns: { xs: "1fr", md: "1fr 1fr 1fr" },
             gap: 2,
           }}
         >
@@ -140,11 +153,11 @@ export default function PortalPage() {
                     locked ? "#2a2a38" : tool.accentColor
                   }`,
                   borderRadius: 2,
-                  p: 3.5,
+                  p: 5,
                   display: "flex",
                   flexDirection: "column",
                   justifyContent: "space-between",
-                  minHeight: 260,
+                  minHeight: 320,
                   cursor: locked ? "default" : "pointer",
                   opacity: locked ? 0.5 : 1,
                   transition: "border-color 0.2s, transform 0.15s",
@@ -187,7 +200,7 @@ export default function PortalPage() {
                     </Box>
                     <Typography
                       sx={{
-                        fontSize: 10,
+                        fontSize: 12,
                         letterSpacing: 1.5,
                         textTransform: "uppercase",
                         color: locked ? "#555570" : tool.labelColor,
@@ -201,7 +214,7 @@ export default function PortalPage() {
                   <Typography
                     sx={{
                       fontFamily: "'Barlow Condensed', sans-serif",
-                      fontSize: 26,
+                      fontSize: 30,
                       fontWeight: 700,
                       color: locked ? "#555570" : "#e8e8f0",
                       mb: 1,
@@ -213,7 +226,7 @@ export default function PortalPage() {
 
                   {/* Description */}
                   <Typography
-                    sx={{ fontSize: 13, color: "#555570", lineHeight: 1.75 }}
+                    sx={{ fontSize: 15, color: "#555570", lineHeight: 1.75 }}
                   >
                     {tool.desc}
                   </Typography>
@@ -237,8 +250,8 @@ export default function PortalPage() {
                         label={chip}
                         size="small"
                         sx={{
-                          fontSize: 10,
-                          height: 22,
+                          fontSize: 13,
+                          height: 32,
                           background: locked
                             ? "rgba(42,42,56,0.5)"
                             : tool.accentBg,
@@ -259,7 +272,7 @@ export default function PortalPage() {
                   ) : (
                     <Typography
                       sx={{
-                        fontSize: 13,
+                        fontSize: 15,
                         color: tool.accentColor,
                         fontWeight: 600,
                       }}
@@ -273,7 +286,6 @@ export default function PortalPage() {
           })}
         </Box>
       </Box>
-      <Footer />
     </Box>
   );
 }
